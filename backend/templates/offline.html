@@ -1,0 +1,77 @@
+{% load static i18n %}
+{% load pwa %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>You are offline</title>
+    {% progressive_web_app_meta %}
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content="ToT" />
+    <meta name="author" content="MVIS DEV" />
+    <meta name="keywords" content="" />
+    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
+    <style>
+      body {
+        width: 100%;
+        min-height: 100vh;
+        display: relative;
+        margin: 0;
+        padding: 0;
+        background: -webkit-linear-gradient(-45deg, #183850 0, #183850 25%, #192C46 50%, #22254C 75%, #22254C 100%);
+      }
+      .wrapper {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        align-items: center;
+        justify-content: center;
+        -webkit-transform: translate(-50%, -50%);
+        -moz-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+        -o-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+      h1 {
+        color: white;
+        font-family: arial;
+        font-weight: bold;
+        font-size: 50px;
+        letter-spacing: 5px;
+        line-height: 1rem;
+        text-shadow: 0 0 3px white;
+      }
+      h4 {
+        color: #f1f1f1;
+        font-family: arial;
+        font-weight: 300;
+        font-size: 16px;
+      }
+      .button {
+        display: block;
+        margin: 20px 0 0;
+        padding: 15px 30px;
+        background: #22254C;
+        color: white;
+        font-family: arial;
+        letter-spacing: 5px;
+        border-radius: .4rem;
+        text-decoration: none;
+        box-shadow: 0 0 15px #22254C;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <h1>OFFLINE</h1>
+      <h4>Please check your internet connection</h4>
+  
+      <a href="." class="button">RETRY</a>
+    </div>
+  </body>
+  </body>
+</html>

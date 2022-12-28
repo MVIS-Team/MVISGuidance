@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}
+  {{ profile.name }}
+{% endblock title %}
+{% block content %}
+  <h1>{{ profile.name }}</h1>
+  <form class="form-horizontal"
+        enctype="multipart/form-data"
+        method="post"
+        action="{% url 'users:update' %}">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+        <a class="btn btn-outline-secondary" href="{% url 'users:redirect' %}">Go Back</a>
+        <button type="submit" class="btn btn-primary">Update</button>
+      </div>
+    </div>
+  </form>
+{% endblock content %}
