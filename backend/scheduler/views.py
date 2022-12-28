@@ -3,7 +3,6 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING, cast
 
-import requests
 import scheduler
 from django.contrib import auth
 from django.contrib.messages.views import SuccessMessageMixin
