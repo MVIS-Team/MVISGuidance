@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING, cast
 
 from django import forms
 from django.contrib import auth
-
-from scheduler.models import Session
+from scheduler.models import Session, TeacherSession
 
 if TYPE_CHECKING:
     from typing import Type
@@ -26,6 +25,20 @@ class SessionForm(forms.ModelForm):
 
     class Meta:
         model = Session
+        exclude = ("date_posted",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class TeacherSessionForm(forms.ModelForm):
+    date = forms.DateField(disabled=True)
+    timeblock = forms.CharField(disabled=True)
+    teacher = forms.ModelChoiceField(User.objects.all(), disabled=True)
+    student = forms.ModelChoiceField(User.objects.all(), disabled=True)
+
+    class Meta:
+        model = TeacherSession
         exclude = ("date_posted",)
 
     def __init__(self, *args, **kwargs):

@@ -1,5 +1,6 @@
 {% load static i18n %}
 {% load static  %}
+{% load has_group %}
 {% load pwa %}
 {% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
@@ -71,6 +72,9 @@
               {% if user.is_authenticated %}
                 {% if user.is_superuser %}
                   <a class="nav-item nav-link" href="{% url 'admin:index' %}">Admin</a>
+                {% endif %}
+                {% if request.user|has_group:"teacher" %}
+                  <a class="nav-item nav-link" href="{% url 'teachertable' %}">Teacher</a>
                 {% endif %}
                 <a class="nav-item nav-link"
                    href="{% url 'users:detail' request.user.username %}">Profile</a>

@@ -149,3 +149,22 @@ class Session(models.Model):
     def get_absolute_url(self):
         # returns a complete url string and let view handle the redirect
         return reverse("session-detail", kwargs={"pk": self.pk})
+
+
+class TeacherSession(models.Model):
+    student: models.ForeignKey = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="studentSession",
+    )
+    teacher: models.ForeignKey = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="teacherSession",
+    )
+    date: models.DateField = models.DateField(default=timezone.now)
+    timeblock: models.CharField = models.CharField(max_length=6)
+    
+    class Meta:
+        verbose_name = "Teacher Session"
+        verbose_name_plural = "Teacher Sessions"

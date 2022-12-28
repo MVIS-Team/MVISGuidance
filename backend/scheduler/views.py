@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING, cast
 
+import requests
 import scheduler
 from django.contrib import auth
 from django.contrib.messages.views import SuccessMessageMixin
@@ -14,8 +15,10 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, DeleteView, UpdateView
 from guardian.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from scheduler.forms import SessionForm
+from scheduler.forms import SessionForm, TeacherSessionForm
 from scheduler.models import Session
+
+from .models import Session
 
 if TYPE_CHECKING:
     from typing import Literal, Sequence, Type
@@ -44,18 +47,17 @@ timeblock = {
 }
 
 suffix = "\n\nMVIS ยินดีอย่างยิ่งที่ได้รับใช้ท่าน\nอย่าลืมนัดนะง้าบบบ"
-ggMeetLink = []
-onlineMeet = '\nโปรดมาพบกันที่มีท https://meet.google.com/kpz-mciv-xes'
+onlineMeet = '\nโปรดมาพบกันที่มีท https://meet.google.com/lookup/'
 
 # Create your views here.
 def generate_daylist(student, teacher):
     if not teacher:
         return {}
     daylist = []
-    today = datetime.date.today()
+    startday = datetime.date.today() + datetime.timedelta(days=1)
     for i in range(7):
         day = {}
-        curr_day = today + datetime.timedelta(days=i)
+        curr_day = startday + datetime.timedelta(days=i)
         weekday = curr_day.strftime("%A").upper()
         day["date"] = str(curr_day)
         day["day"] = weekday
@@ -71,14 +73,29 @@ def generate_daylist(student, teacher):
                     & (Q(teacher=teacher) | Q(student=student))
                 ).exists(),
             )
-        daylist.append(day)
+        #avoid appoint less than 12hrs
+        if i == 0:
+            now = datetime.datetime.now()
+            now = now.hour + now.minute/60
+            for iter in range(65, 72): #ASCII of 'A' - 'G'
+                if iter/2 - now< 12:
+                    day["booked"][chr(iter)] = (timeblock[chr(iter)], True)
+            
+        if day["day"] not in ["SATURDAY", "SUNDAY"]:  # Teachers don't want some appointment on weekends
+            daylist.append(day)
     return daylist
 
+def sendCancelMail(request, student, teacher, date, tblock):
+    if student != teacher:
+        content = f'เรียนคุณ { student.username } และอาจารย์ { teacher.username }\n\n'
+        content += f'ขออภัยเป็นอย่างยิ่ง เราขอยกเลิกนัดใน{ date.strftime(f"วันที่ %d เดือน %B ปี %Y") } ช่วง { timeblock[tblock] } เนื่องจากคุณ { request } ไม่สะดวก กรุณานัดเวลาใหม่ในระบบอีกครั้ง'
+        content += suffix
+        send_mail('ขอยกเลิกนัด', content, 'mvisguidance@gmail.com', [student.email, teacher.email])
 
-class SessionCreateView(LoginRequiredMixin, CreateView):
-    form_class = SessionForm
+
+class TeacherSchedule(LoginRequiredMixin, CreateView):
+    form_class = TeacherSessionForm
     template_name = "scheduler/session_form.html"
-
     def get_initial(self):
         return {
             "date": self.kwargs.get("date"),
@@ -91,14 +108,94 @@ class SessionCreateView(LoginRequiredMixin, CreateView):
         return super().form_invalid(form)
 
     def get_success_url(self):
+        pk = self.kwargs.get("teacher_pk")
+        day = self.kwargs.get("date")
+        timeList = {
+            'allday': [chr(i) for i in range(65,81)],
+            'allam': [chr(i) for i in range(65,72)],
+            'allpm': [chr(i) for i in range(74,81)] 
+        }
+        if self.kwargs.get("timeblock") == 'allday':
+            data = Session.objects.mydata = Session.objects.filter(date=day, teacher_id=pk).values()
+            for i in data:
+                student = User.objects.get(pk=i['student_id'])
+                teacher = User.objects.get(pk=i['teacher_id'])
+                date = i['date']
+                tblock = i['timeblock']
+                sendCancelMail(self.request.user, student, teacher, date, tblock)
+            data = Session.objects.mydata = Session.objects.filter(date=day, teacher_id=pk)
+            data.delete()    
+            
+            #save data
+            for i in timeList['allday']:
+                newSession = Session(student_id=pk ,teacher_id=pk,date=day,timeblock=i, location='onsite' )
+                newSession.save()
+                
+        elif self.kwargs.get("timeblock") == 'allam':
+            data = Session.objects.filter(date=day, teacher_id=pk, timeblock__in=timeList['allam']).values()
+            for i in data:
+                student = User.objects.get(pk=i['student_id'])
+                teacher = User.objects.get(pk=i['teacher_id'])
+                date = i['date']
+                tblock = i['timeblock']
+                sendCancelMail(self.request.user, student, teacher, date, tblock)
+            data = Session.objects.filter(date=day, teacher_id=pk, timeblock__in=timeList['allam'])
+            data.delete()    
+            
+            #save data
+            for i in timeList['allam']:
+                newSession = Session(student_id=pk ,teacher_id=pk,date=day,timeblock=i, location='onsite' )
+                newSession.save()
+        else:
+            data = Session.objects.mydata = Session.objects.filter(date=day, teacher_id=pk, timeblock__in=timeList['allpm']).values()
+            for i in data:
+                student = User.objects.get(pk=i['student_id'])
+                teacher = User.objects.get(pk=i['teacher_id'])
+                date = i['date']
+                tblock = i['timeblock']
+                sendCancelMail(self.request.user, student, teacher, date, tblock)
+            data = Session.objects.filter(date=day, teacher_id=pk, timeblock__in=timeList['allpm'])
+            data.delete()
+            
+            #save data
+            for i in timeList['allpm']:
+                newSession = Session(student_id=pk ,teacher_id=pk,date=day,timeblock=i, location='onsite' )
+                newSession.save() 
+            
+            
         user: _User = self.request.user  # type: ignore
-        pk = self.kwargs.get('teacher_pk') 
-        content = f'เรียนคุณ { self.request.user } และอาจารย์ { auth.get_user_model().objects.get(id = pk) }\n\n'
-        content += f'เรามีนัดคุยกันในหัวข้อ { self.request.POST.get("topic") } ใน{ self.kwargs.get("date").strftime("วันที่ %d เดือน %m ปี %Y") } ช่วง { timeblock[self.kwargs.get("timeblock")] }'
-        if self.request.POST.get('location') == 'online':
-           content += onlineMeet
-        content += suffix
-        send_mail('จองเวลาคุยกับอาจารย์', content, 'mvisguidance@gmail.com',[self.request.user.email, auth.get_user_model().objects.get(id = pk).email])
+        return reverse("users:detail", args=[user.username])
+    
+
+class SessionCreateView(LoginRequiredMixin, CreateView):
+    form_class = SessionForm
+    template_name = "scheduler/session_form.html"
+
+    def get_initial(self):
+        return {
+            "date": self.kwargs.get("date"),
+            "timeblock": self.kwargs.get("timeblock"),
+            "teacher": User.objects.get(pk=self.kwargs.get("teacher_pk")),
+            "student": self.request.user,
+            "location": self.kwargs.get("location"),
+            "topic": self.kwargs.get("topic"),
+        }
+
+    def form_invalid(self, form):
+        return super().form_invalid(form)
+
+    def get_success_url(self):
+        global onlineMeet
+        user: _User = self.request.user  # type: ignore
+        pk = self.kwargs.get('teacher_pk')
+        if self.request.user.email != auth.get_user_model().objects.get(id = pk).email:
+            content = f'เรียนคุณ { self.request.user } และอาจารย์ { auth.get_user_model().objects.get(id = pk) }\n\n'
+            content += f'เรามีนัดคุยกันในหัวข้อ { self.request.POST.get("topic") } ใน{ self.kwargs.get("date").strftime("วันที่ %d เดือน %m ปี %Y") } ช่วง { timeblock[self.kwargs.get("timeblock")] }'
+            if self.request.POST.get('location') == 'online':
+                onlineMeet += str(auth.get_user_model().objects.get(id = pk))
+                content += onlineMeet
+            content += suffix
+            send_mail('จองเวลาคุยกับอาจารย์', content, 'mvisguidance@gmail.com',[self.request.user.email, auth.get_user_model().objects.get(id = pk).email])
         return reverse("users:detail", args=[user.username])
 
 
@@ -112,13 +209,16 @@ class SessionEditView(
 
     def get_success_url(self):
         user: _User = self.request.user  # type: ignore
+        global onlineMeet
         pk = self.kwargs.get('pk')
-        content = f'เรียนคุณ { self.request.user } และอาจารย์ { auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id) }\n\n'
-        content += f'เราขอเปลี่ยนแปลงการนัดใน{ scheduler.models.Session.objects.get(id=pk).date.strftime(f"วันที่ %d เดือน %B ปี %Y") } ช่วง { timeblock[scheduler.models.Session.objects.get(id=pk).timeblock] } ให้เป็นแบบ { scheduler.models.Session.objects.get(id=pk).location }'
-        if scheduler.models.Session.objects.get(id=pk).location == 'online':
-            content += onlineMeet 
-        content += suffix
-        send_mail('เปลี่ยนแปลงการนัด', content, 'mvisguidance@gmail.com',[self.request.user.email, auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id).email]) 
+        if self.request.user.email != auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id).email:
+            content = f'เรียนคุณ { self.request.user } และอาจารย์ { auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id) }\n\n'
+            content += f'เราขอเปลี่ยนแปลงการนัดใน{ scheduler.models.Session.objects.get(id=pk).date.strftime(f"วันที่ %d เดือน %B ปี %Y") } ช่วง { timeblock[scheduler.models.Session.objects.get(id=pk).timeblock] } ให้เป็นแบบ { scheduler.models.Session.objects.get(id=pk).location }'
+            if scheduler.models.Session.objects.get(id=pk).location == 'online':
+                onlineMeet += str(auth.get_user_model().objects.get(id = pk))
+                content += onlineMeet 
+            content += suffix
+            send_mail('เปลี่ยนแปลงการนัด', content, 'mvisguidance@gmail.com',[self.request.user.email, auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id).email]) 
         return reverse("users:detail", args=[user.username])
 
 
@@ -129,11 +229,12 @@ class SessionCancelView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
     def get_success_url(self):
         user: _User = self.request.user  # type: ignore
         pk = self.kwargs.get('pk')
-        content = f'เรียนคุณ { self.request.user } และอาจารย์ { auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id) }\n\n'
-        content += f'ขออภัยเป็นอย่างยิ่ง เราขอยกเลิกนัดใน{ scheduler.models.Session.objects.get(id=pk).date.strftime(f"วันที่ %d เดือน %B ปี %Y") } ช่วง { timeblock[scheduler.models.Session.objects.get(id=pk).timeblock] } เนื่องจากมีสมาชิกไม่สะดวก กรุณานัดเวลาใหม่ในระบบอีกครั้ง'
-        content += suffix
-        send_mail('ขอยกเลิกนัด', content, 'mvisguidance@gmail.com', [self.request.user.email, auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id).email])
-        return reverse("users:detail", args=[user.username])
+        if self.request.user.email != auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id).email: 
+            content = f'เรียนคุณ { self.request.user } และอาจารย์ { auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id) }\n\n'
+            content += f'ขออภัยเป็นอย่างยิ่ง เราขอยกเลิกนัดใน{ scheduler.models.Session.objects.get(id=pk).date.strftime(f"วันที่ %d เดือน %B ปี %Y") } ช่วง { timeblock[scheduler.models.Session.objects.get(id=pk).timeblock] } เนื่องจากคุณ {{self.request.user}} ไม่สะดวก กรุณานัดเวลาใหม่ในระบบอีกครั้ง'
+            content += suffix
+            send_mail('ขอยกเลิกนัด', content, 'mvisguidance@gmail.com', [self.request.user.email, auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id).email])
+        return reverse("users:detail", args=[user.username])   
 
 
 def book(request, teacher_pk):
@@ -173,6 +274,20 @@ def home(request):
     }
     return render(request, "pages/teachers.html", context)
 
-def teacherSchedule(request):
-    context ={}
-    return render(request, "pages/forTeacher.html", context)
+def teachertable(request):
+    student = request.user
+    teacher = User.objects.get(pk=request.user.id)
+    curr_day = datetime.date.today()
+    weekday = curr_day.strftime("%A").upper()
+    dayList = [{'date': curr_day,
+                'day': weekday,
+                'onduty': teacher,
+            }]
+    for i in generate_daylist(student, teacher):
+        new_dict = {key: i[key] for key in ['date', 'day', 'onduty']}
+        dayList.append(new_dict)
+    context = {
+            "days": dayList,
+            "teacher": teacher,
+    }
+    return render(request, "pages/teachertable.html", context)

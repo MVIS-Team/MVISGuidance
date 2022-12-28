@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from django.urls import path, register_converter
-
 from scheduler import views
 
 
@@ -35,5 +34,6 @@ urlpatterns = [
         views.SessionCancelView.as_view(),
         name="session-cancel",
     ),
-    path("teacherSchedule/", views.teacherSchedule, name='teacherSchedule')
+    path("teacherSchedule/", views.teachertable, name='teachertable'),
+    path("sessions/new/teacherSchedule/<int:teacher_pk>/<yyyy:date>/<str:timeblock>", views.TeacherSchedule.as_view(), name='teacherSchedule')
 ]
