@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from decouple import config
-
 from main.settings.base import *
 
 # GENERAL

@@ -34,6 +34,10 @@ urlpatterns = [
         views.SessionCancelView.as_view(),
         name="session-cancel",
     ),
-    path("teacherSchedule/", views.teachertable, name='teachertable'),
-    path("sessions/new/teacherSchedule/<int:teacher_pk>/<yyyy:date>/<str:timeblock>", views.TeacherSchedule.as_view(), name='teacherSchedule')
+    path("teacherSchedule/", views.teachertable, name="teachertable"),
+    path(
+        "sessions/new/teacherSchedule/<int:teacher_pk>/<yyyy:date>/<str:timeblock>",
+        views.TeacherSchedule.as_view(),
+        name="teacherSchedule",
+    ),
 ]

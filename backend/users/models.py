@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from typing import Callable, Type
 
     from django.contrib.auth.models import User as _User
-
     from users.models import Profile as _Profile
 
 # Create your models here.

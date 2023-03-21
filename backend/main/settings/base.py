@@ -84,7 +84,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "pwa",
     "guardian",
-    'oauth2_provider',
+    "oauth2_provider",
 ]
 LOCAL_APPS = [
     "users",
@@ -146,11 +146,11 @@ MIDDLEWARE = [
 # STATIC
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = os.path.join("/var/www/MVISGuidance/", 'static')
+STATIC_ROOT = os.path.join("/var/www/MVISGuidance/", "static")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static/')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static/")]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -224,7 +224,7 @@ EMAIL_HOST = config("EMAIL_HOST")
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 # ADMIN
 # ------------------------------------------------------------------------------

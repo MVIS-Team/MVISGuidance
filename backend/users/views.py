@@ -7,12 +7,12 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
-
 from users.forms import ProfileChangeForm
 from users.models import Profile
 
 if TYPE_CHECKING:
     from typing import Any
+
 
 # Create your views here.
 @login_required

@@ -1,25 +1,23 @@
-{% extends "base.html" %}
-{% block content %}
-    {% for day in days %}
-        <article class="media content-section">
-            <div class="media-body">
-                <div class="article-metadata">
-                    <a class="mr-2" href="#">{{ day.date }}</a>
-                    <small class="text-muted">{{ day.day }}</small>
-                </div>
-                <h2>
-                    <a class="article-title" href="#">{{ teacher.name }}</a>
-                </h2>
-                <p class="article-content">{{ day.dept }}</p>
-                {% for key, value in day.booked.items %}
-                    {% if not value.1 %}
-                        <a class="btn btn-success btn-lg btn-block"
-                           href="{% url 'session-create-spec' teacher.pk day.date key %}">{{ value.0 }}</a>
-                    {% else %}
-                        <a class="btn btn-secondary btn-lg btn-block" disabled>BOOKED</a>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </article>
-    {% endfor %}
-{% endblock content %}
+{% extends "base.html" %} {% block content %} {% for day in days %}
+<article class="media content-section">
+  <div class="media-body">
+    <div class="article-metadata">
+      <a class="mr-2" href="#">{{ day.date }}</a>
+      <small class="text-muted">{{ day.day }}</small>
+    </div>
+    <h2>
+      <a class="article-title" href="#">{{ teacher.name }}</a>
+    </h2>
+    <p class="article-content">{{ day.dept }}</p>
+    {% for key, value in day.booked.items %} {% if not value.1 %}
+    <a
+      class="btn btn-success btn-lg btn-block"
+      href="{% url 'session-create-spec' teacher.pk day.date key %}"
+      >{{ value.0 }}</a
+    >
+    {% else %}
+    <a class="btn btn-secondary btn-lg btn-block" disabled>BOOKED</a>
+    {% endif %} {% endfor %}
+  </div>
+</article>
+{% endfor %} {% endblock content %}

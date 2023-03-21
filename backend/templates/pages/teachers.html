@@ -1,23 +1,21 @@
-{% extends "base.html" %}
-{% load static %}
-{% block content %}
-    {% for teacher in teachers %}
-        <div class="content-section">
-            <h2>{{ teacher.profile.name }}</h2>
-            <div class="media">
-                <img style="object-fit: cover;
-                            height: 10%;
-                            width: 10%;
-                            border-radius: 100%;"
-                     width="10%"
-                     height="10%"
-                     src="{{ teacher.profile.avatar_url }}"
-                     alt="{{ teacher.profile.name }}"/>
-                <div class="media-body">
-                    <br />
-                    <a class="account-heading" href="{% url 'scheduler-book' teacher.pk %}">Book</a>
-                </div>
-            </div>
-        </div>
-    {% endfor %}
-{% endblock content %}
+{% extends "base.html" %} {% load static %} {% block content %} {% for teacher
+in teachers %}
+<div class="content-section">
+  <h2>{{ teacher.profile.name }}</h2>
+  <div class="media">
+    <img
+      style="object-fit: cover; height: 10%; width: 10%; border-radius: 100%"
+      width="10%"
+      height="10%"
+      src="{{ teacher.profile.avatar_url }}"
+      alt="{{ teacher.profile.name }}"
+    />
+    <div class="media-body">
+      <br />
+      <a class="account-heading" href="{% url 'scheduler-book' teacher.pk %}"
+        >Book</a
+      >
+    </div>
+  </div>
+</div>
+{% endfor %} {% endblock content %}

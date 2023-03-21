@@ -6,11 +6,11 @@ from django.core.mail import EmailMessage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from guardian.shortcuts import assign_perm
-
 from scheduler.models import Session
 
 if TYPE_CHECKING:
     from typing import Type
+
 
 # @receiver(post_save, sender=Session)
 def session_notify(sender: Type[Session], instance: Session, created: bool, **kwargs):

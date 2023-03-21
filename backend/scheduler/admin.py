@@ -11,4 +11,4 @@ class SessionAdmin(GuardedModelAdmin):
 
 
 admin.site.register(Session, SessionAdmin)
-#admin.site.unregister(TeacherSession)
+# admin.site.unregister(TeacherSession)

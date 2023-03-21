@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from django.contrib.auth import views as auth_views
 from django.urls import path
-
 from users import views
 
 app_name = "users"

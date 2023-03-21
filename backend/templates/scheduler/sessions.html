@@ -1,17 +1,19 @@
-{% extends "base.html" %}
-{% block content %}
-  {% for session in sessions %}
-    <article class="media content-section">
-      <div class="media-body">
-        <div class="article-metadata">
-          <a class="mr-2">{{ session.student.profile.name }} and {{ session.teacher.profile.name }}</a>
-          <small class="text-muted">{{ session.date|date:"F d, Y" }}</small>
-        </div>
-          <h2>
-            <a class="article-title" href="{% url 'session-detail' session.pk %}">{{ session.helptype }}</a>
-          </h2>
-          <p class="article-content">{{ session.date|date:"l" }}</p>
-        </div>
-      </article>
-    {% endfor %}
-  {% endblock content %}
+{% extends "base.html" %} {% block content %} {% for session in sessions %}
+<article class="media content-section">
+  <div class="media-body">
+    <div class="article-metadata">
+      <a class="mr-2"
+        >{{ session.student.profile.name }} and {{ session.teacher.profile.name
+        }}</a
+      >
+      <small class="text-muted">{{ session.date|date:"F d, Y" }}</small>
+    </div>
+    <h2>
+      <a class="article-title" href="{% url 'session-detail' session.pk %}"
+        >{{ session.helptype }}</a
+      >
+    </h2>
+    <p class="article-content">{{ session.date|date:"l" }}</p>
+  </div>
+</article>
+{% endfor %} {% endblock content %}

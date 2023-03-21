@@ -1,7 +1,6 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext_lazy as _
-
 from issue.forms import IssuesForm
 
 

@@ -164,7 +164,7 @@ class TeacherSession(models.Model):
     )
     date: models.DateField = models.DateField(default=timezone.now)
     timeblock: models.CharField = models.CharField(max_length=6)
-    
+
     class Meta:
         verbose_name = "Teacher Session"
         verbose_name_plural = "Teacher Sessions"

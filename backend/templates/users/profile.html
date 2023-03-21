@@ -1,14 +1,8 @@
-{% extends "base.html" %}
-{% load static %}
-{% load has_group %}
-{% load session_detail %}
-{% load profile_detail %}
-{% block title %}
-  User: {{ profile.name }}
-{% endblock title %}
-{% block content %}
-  {% profile_detail profile %}
-  <!-- 
+{% extends "base.html" %} {% load static %} {% load has_group %} {% load
+session_detail %} {% load profile_detail %} {% block title %} User: {{
+profile.name }} {% endblock title %} {% block content %} {% profile_detail
+profile %}
+<!-- 
   {% if user == profile.user %}
     {% if not user|has_group:"teacher" %}
       <div class="content-section">
@@ -55,36 +49,24 @@
       </script>
     {% endif %}
   {% endif %} -->
-  {% if profile.user|has_group:"teacher" %}
-    <div class="content-section">
-      <h2>Teacher Sessions</h2>
-      <h3>Upcoming Sessions</h3>
-      {% for session in teacher_sessions %}
-        {% if session.is_upcoming %}
-          {% session_detail session "teacher" %}
-        {% endif %}
-      {% endfor %}
-      <h3>Past Sessions</h3>
-      {% for session in teacher_sessions %}
-        {% if session.is_upcoming is False %}
-          {% session_detail session "teacher" %}
-        {% endif %}
-      {% endfor %}
-    </div>
-  {% endif %}
-  <div class="content-section">
-    <h2>Student Session</h2>
-    <h3>Upcoming Sessions</h3>
-    {% for session in student_sessions %}
-      {% if session.is_upcoming %}
-        {% session_detail session "student" %}
-      {% endif %}
-    {% endfor %}
-    <h3>Past Sessions</h3>
-    {% for session in student_sessions %}
-      {% if session.is_upcoming is False %}
-        {% session_detail session "student" %}
-      {% endif %}
-    {% endfor %}
-  </div>
+{% if profile.user|has_group:"teacher" %}
+<div class="content-section">
+  <h2>Teacher Sessions</h2>
+  <h3>Upcoming Sessions</h3>
+  {% for session in teacher_sessions %} {% if session.is_upcoming %} {%
+  session_detail session "teacher" %} {% endif %} {% endfor %}
+  <h3>Past Sessions</h3>
+  {% for session in teacher_sessions %} {% if session.is_upcoming is False %} {%
+  session_detail session "teacher" %} {% endif %} {% endfor %}
+</div>
+{% endif %}
+<div class="content-section">
+  <h2>Student Session</h2>
+  <h3>Upcoming Sessions</h3>
+  {% for session in student_sessions %} {% if session.is_upcoming %} {%
+  session_detail session "student" %} {% endif %} {% endfor %}
+  <h3>Past Sessions</h3>
+  {% for session in student_sessions %} {% if session.is_upcoming is False %} {%
+  session_detail session "student" %} {% endif %} {% endfor %}
+</div>
 {% endblock content %}

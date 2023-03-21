@@ -1,52 +1,68 @@
 {% if mode == "teacher" %}
-  <article class="media content-section">
-    <img class="rounded-circle article-img"
-         src="{{ session.student.profile.avatar_url }}"
-         width="125"
-         height="125"
-         alt="Profile Image"/>
-    <div class="media-body">
-      <div class="article-metadata">
-        <a class="mr-2"
-           href="{% url 'users:redirect' session.student.username %}">{{ session.student.name }}</a>
-        <small class="text-muted">{{ session.date|date:"F d, Y" }}</small>
-      </div>
-      <h4>
-        <a class="article-title" href="#">{{ session.timeblock }} {{ session.time }}</a>
-      </h4>
-      <p class="article-content">{{ session.helptype }}</p>
-      <p class="article-content">{{ session.date|date:"l" }}</p>
-      {% if session.student == user or session.teacher == user %}
-        <div>
-          <a class="btn btn-secondary btn-small mt-1 mb-1"
-             href="{% url 'session-edit' session.pk %}">Edit</a>
-          <a class="btn btn-danger btn-small mt-1 mb-1"
-             href="{% url 'session-cancel' session.pk %}">Cancel</a>
-        </div>
-      {% else %}
-        <p>
-          Dear {{ user.profile.name }},
-          This session is not related to you. If you see this text, please report to
-          the developer.
-        </p>
-      {% endif %}
+<article class="media content-section">
+  <img
+    class="rounded-circle article-img"
+    src="{{ session.student.profile.avatar_url }}"
+    width="125"
+    height="125"
+    alt="Profile Image"
+  />
+  <div class="media-body">
+    <div class="article-metadata">
+      <a class="mr-2" href="{% url 'users:redirect' session.student.username %}"
+        >{{ session.student.name }}</a
+      >
+      <small class="text-muted">{{ session.date|date:"F d, Y" }}</small>
     </div>
-  </article>
-{% elif mode == "student" %}
-  <div class="card bg-light mb-3" style="width: 18rem">
-    <div class="card-header">{{ session.date|date:"F d, l" }}</div>
-    <div class="card-body">
-      <h5 class="card-title">{{ session.get_timeblock_display }}</h5>
-      <h6 class="card-subtitle mb-2 text-muted">{{ session.teacher.name }}</h6>
-      <p class="card-text">{{ session.helptype }}</p>
-      {% if session.is_upcoming %}
-        <a class="btn btn-outline-secondary btn-small mt-1 mb-1"
-           href="{% url 'session-edit' session.pk %}">Edit</a>
-        <a class="btn btn-outline-danger btn-small mt-1 mb-1"
-           href="{% url 'session-cancel' session.pk %}">Cancel</a>
-      {% endif %}
+    <h4>
+      <a class="article-title" href="#"
+        >{{ session.timeblock }} {{ session.time }}</a
+      >
+    </h4>
+    <p class="article-content">{{ session.helptype }}</p>
+    <p class="article-content">{{ session.date|date:"l" }}</p>
+    {% if session.student == user or session.teacher == user %}
+    <div>
+      <a
+        class="btn btn-secondary btn-small mt-1 mb-1"
+        href="{% url 'session-edit' session.pk %}"
+        >Edit</a
+      >
+      <a
+        class="btn btn-danger btn-small mt-1 mb-1"
+        href="{% url 'session-cancel' session.pk %}"
+        >Cancel</a
+      >
     </div>
+    {% else %}
+    <p>
+      Dear {{ user.profile.name }}, This session is not related to you. If you
+      see this text, please report to the developer.
+    </p>
+    {% endif %}
   </div>
+</article>
+{% elif mode == "student" %}
+<div class="card bg-light mb-3" style="width: 18rem">
+  <div class="card-header">{{ session.date|date:"F d, l" }}</div>
+  <div class="card-body">
+    <h5 class="card-title">{{ session.get_timeblock_display }}</h5>
+    <h6 class="card-subtitle mb-2 text-muted">{{ session.teacher.name }}</h6>
+    <p class="card-text">{{ session.helptype }}</p>
+    {% if session.is_upcoming %}
+    <a
+      class="btn btn-outline-secondary btn-small mt-1 mb-1"
+      href="{% url 'session-edit' session.pk %}"
+      >Edit</a
+    >
+    <a
+      class="btn btn-outline-danger btn-small mt-1 mb-1"
+      href="{% url 'session-cancel' session.pk %}"
+      >Cancel</a
+    >
+    {% endif %}
+  </div>
+</div>
 {% else %}
-  <p>Who are you?</p>
+<p>Who are you?</p>
 {% endif %}
