@@ -10,7 +10,7 @@
   <div class="media-body">
     <div class="article-metadata">
       <a class="mr-2" href="{% url 'users:redirect' session.student.username %}"
-        >{{ session.student.name }}</a
+        >{{ session.student.username }}</a
       >
       <small class="text-muted">{{ session.date|date:"F d, Y" }}</small>
     </div>
@@ -47,7 +47,9 @@
   <div class="card-header">{{ session.date|date:"F d, l" }}</div>
   <div class="card-body">
     <h5 class="card-title">{{ session.get_timeblock_display }}</h5>
-    <h6 class="card-subtitle mb-2 text-muted">{{ session.teacher.name }}</h6>
+    <h6 class="card-subtitle mb-2 text-muted">
+      {{ session.teacher.username }}
+    </h6>
     <p class="card-text">{{ session.helptype }}</p>
     {% if session.is_upcoming %}
     <a

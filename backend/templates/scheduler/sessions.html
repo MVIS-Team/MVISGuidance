@@ -1,19 +1,113 @@
-{% extends "base.html" %} {% block content %} {% for session in sessions %}
-<article class="media content-section">
-  <div class="media-body">
-    <div class="article-metadata">
-      <a class="mr-2"
-        >{{ session.student.profile.name }} and {{ session.teacher.profile.name
-        }}</a
+{% extends "base.html" %} {% load session_detail %} {% block content %}
+<div class="content-section" id="session-list">
+  <ul class="nav nav-tabs" role="tablist">
+    {% if teacher_sessions %}
+    <li class="nav-item dropdown">
+      <a
+        class="nav-link dropdown-toggle"
+        role="button"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false"
+        >Teacher</a
       >
-      <small class="text-muted">{{ session.date|date:"F d, Y" }}</small>
+      <ul class="dropdown-menu">
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            data-toggle="tab"
+            href="#teacher-upcoming"
+            role="tab"
+            >Upcoming Sessions</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#teacher-past" role="tab"
+            >Past Sessions</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'teacher-export-session' %}"
+            >Export Past Sessions</a
+          >
+        </li>
+      </ul>
+    </li>
+    {% endif %} {% if student_sessions %}
+    <li class="nav-item dropdown">
+      <a
+        class="nav-link dropdown-toggle"
+        role="button"
+        data-toggle="dropdown"
+        aria-haspopup="true"
+        aria-expanded="false"
+        >Student</a
+      >
+      <ul class="dropdown-menu">
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            data-toggle="tab"
+            href="#student-upcoming"
+            role="tab"
+            >Upcoming Sessions</a
+          >
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#student-past" role="tab"
+            >Past Sessions</a
+          >
+        </li>
+      </ul>
+    </li>
+    {% endif %}
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane" id="teacher-upcoming" role="tabpanel">
+      {% for session in teacher_sessions %} {% if session.is_upcoming %} {%
+      session_detail session "teacher" %} {% endif %} {% endfor %}
     </div>
-    <h2>
-      <a class="article-title" href="{% url 'session-detail' session.pk %}"
-        >{{ session.helptype }}</a
-      >
-    </h2>
-    <p class="article-content">{{ session.date|date:"l" }}</p>
+    <div class="tab-pane" id="teacher-past" role="tabpanel">
+      {% for session in teacher_sessions %} {% if session.is_upcoming is False
+      %} {% session_detail session "teacher" %} {% endif %} {% endfor %}
+    </div>
+    <div class="tab-pane" id="student-upcoming" role="tabpanel">
+      {% for session in student_sessions %} {% if session.is_upcoming %} {%
+      session_detail session "student" %} {% endif %} {% endfor %}
+    </div>
+    <div class="tab-pane" id="student-past" role="tabpanel">
+      {% for session in student_sessions %} {% if session.is_upcoming is False
+      %} {% session_detail session "student" %} {% endif %} {% endfor %}
+    </div>
   </div>
-</article>
-{% endfor %} {% endblock content %}
+  <script>
+    {
+      const session_list = document.querySelector(`#session-list`);
+      const tabs = Array.from(
+        session_list.querySelectorAll(`[role="tabpanel"]`),
+        (panel) => {
+          return {
+            tab: session_list.querySelector(
+              `[role="tab"][href="#${panel.id}"]`
+            ),
+            panel,
+          };
+        }
+      );
+      function reset() {
+        tabs.forEach(({ panel, tab }) => {
+          tab.setAttribute("aria-selected", "false");
+          panel.style.display = "none";
+        });
+      }
+      tabs.forEach(({ panel, tab }) => {
+        tab.addEventListener("click", (e) => {
+          reset();
+          tab.setAttribute("aria-selected", "true");
+          panel.style.display = "block";
+        });
+      });
+    }
+  </script>
+</div>
+{% endblock content %}

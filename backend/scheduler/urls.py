@@ -34,10 +34,12 @@ urlpatterns = [
         views.SessionCancelView.as_view(),
         name="session-cancel",
     ),
-    path("teacherSchedule/", views.teachertable, name="teachertable"),
+    path("sessions/", views.sessions, name="session-list"),
+    path("teacher/book/", views.Teacher.schedule, name="teacher-scheduler-book"),
+    path("teacher/export/", views.Teacher.export, name="teacher-export-session"),
     path(
-        "sessions/new/teacherSchedule/<int:teacher_pk>/<yyyy:date>/<str:timeblock>",
-        views.TeacherSchedule.as_view(),
-        name="teacherSchedule",
+        "sessions/new/teacher/<int:teacher_pk>/<yyyy:date>/<str:timeblock>",
+        views.Teacher.TeacherSessionCreateView.as_view(),
+        name="teacher-session-create",
     ),
 ]

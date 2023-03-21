@@ -11,17 +11,17 @@
     <p class="article-content">{{ day.dept }}</p>
     <a
       class="btn btn-success btn-lg btn-block"
-      href="{% url 'teacherSchedule' teacher.pk day.date 'allday' %}"
+      href="{% url 'teacher-session-create' teacher.pk day.date 'allday' %}"
       >All Day</a
     >
     <a
       class="btn btn-success btn-lg btn-block"
-      href="{% url 'teacherSchedule' teacher.pk day.date 'allam' %}"
+      href="{% url 'teacher-session-create' teacher.pk day.date 'allam' %}"
       >All AM</a
     >
     <a
       class="btn btn-success btn-lg btn-block"
-      href="{% url 'teacherSchedule' teacher.pk day.date 'allpm' %}"
+      href="{% url 'teacher-session-create' teacher.pk day.date 'allpm' %}"
       >All PM</a
     >
   </div>

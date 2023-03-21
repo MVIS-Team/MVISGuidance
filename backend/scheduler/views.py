@@ -1,19 +1,22 @@
 from __future__ import annotations
 
+import csv
 import datetime
+import io
 from typing import TYPE_CHECKING, cast
 
 import scheduler
 from django.contrib import auth
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, DeleteView, UpdateView
 from guardian.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from guardian.shortcuts import get_objects_for_user
 from scheduler.forms import SessionForm, TeacherSessionForm
 from scheduler.models import Session
 
@@ -52,7 +55,7 @@ onlineMeet = "\nโปรดมาพบกันที่มีท https://meet
 # Create your views here.
 def generate_daylist(student, teacher):
     if not teacher:
-        return {}
+        return []
     daylist = []
     startday = datetime.date.today() + datetime.timedelta(days=1)
     for i in range(7):
@@ -100,110 +103,6 @@ def sendCancelMail(request, student, teacher, date, tblock):
             "mvisguidance@gmail.com",
             [student.email, teacher.email],
         )
-
-
-class TeacherSchedule(LoginRequiredMixin, CreateView):
-    form_class = TeacherSessionForm
-    template_name = "scheduler/session_form.html"
-
-    def get_initial(self):
-        return {
-            "date": self.kwargs.get("date"),
-            "timeblock": self.kwargs.get("timeblock"),
-            "teacher": User.objects.get(pk=self.kwargs.get("teacher_pk")),
-            "student": self.request.user,
-        }
-
-    def form_invalid(self, form):
-        return super().form_invalid(form)
-
-    def get_success_url(self):
-        pk = self.kwargs.get("teacher_pk")
-        day = self.kwargs.get("date")
-        timeList = {
-            "allday": [chr(i) for i in range(65, 81)],
-            "allam": [chr(i) for i in range(65, 72)],
-            "allpm": [chr(i) for i in range(74, 81)],
-        }
-        if self.kwargs.get("timeblock") == "allday":
-            data = Session.objects.mydata = Session.objects.filter(
-                date=day, teacher_id=pk
-            ).values()
-            for i in data:
-                student = User.objects.get(pk=i["student_id"])
-                teacher = User.objects.get(pk=i["teacher_id"])
-                date = i["date"]
-                tblock = i["timeblock"]
-                sendCancelMail(self.request.user, student, teacher, date, tblock)
-            data = Session.objects.mydata = Session.objects.filter(
-                date=day, teacher_id=pk
-            )
-            data.delete()
-
-            # save data
-            for i in timeList["allday"]:
-                newSession = Session(
-                    student_id=pk,
-                    teacher_id=pk,
-                    date=day,
-                    timeblock=i,
-                    location="onsite",
-                )
-                newSession.save()
-
-        elif self.kwargs.get("timeblock") == "allam":
-            data = Session.objects.filter(
-                date=day, teacher_id=pk, timeblock__in=timeList["allam"]
-            ).values()
-            for i in data:
-                student = User.objects.get(pk=i["student_id"])
-                teacher = User.objects.get(pk=i["teacher_id"])
-                date = i["date"]
-                tblock = i["timeblock"]
-                sendCancelMail(self.request.user, student, teacher, date, tblock)
-            data = Session.objects.filter(
-                date=day, teacher_id=pk, timeblock__in=timeList["allam"]
-            )
-            data.delete()
-
-            # save data
-            for i in timeList["allam"]:
-                newSession = Session(
-                    student_id=pk,
-                    teacher_id=pk,
-                    date=day,
-                    timeblock=i,
-                    location="onsite",
-                )
-                newSession.save()
-        else:
-            data = Session.objects.mydata = Session.objects.filter(
-                date=day, teacher_id=pk, timeblock__in=timeList["allpm"]
-            ).values()
-            for i in data:
-                student = User.objects.get(pk=i["student_id"])
-                teacher = User.objects.get(pk=i["teacher_id"])
-                date = i["date"]
-                tblock = i["timeblock"]
-                sendCancelMail(self.request.user, student, teacher, date, tblock)
-            data = Session.objects.filter(
-                date=day, teacher_id=pk, timeblock__in=timeList["allpm"]
-            )
-            data.delete()
-
-            # save data
-            for i in timeList["allpm"]:
-                newSession = Session(
-                    student_id=pk,
-                    teacher_id=pk,
-                    date=day,
-                    timeblock=i,
-                    location="onsite",
-                )
-                newSession.save()
-
-        user: _User = self.request.user  # type: ignore
-        return reverse("users:detail", args=[user.username])
 
 
 class SessionCreateView(LoginRequiredMixin, CreateView):
@@ -293,28 +192,14 @@ class SessionCancelView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
     def get_success_url(self):
         user: _User = self.request.user  # type: ignore
         pk = self.kwargs.get("pk")
-        if (
-            self.request.user.email
-            != auth.get_user_model()
-            .objects.get(id=scheduler.models.Session.objects.get(id=pk).teacher_id)
-            .email
-        ):
-            content = f"เรียนคุณ { self.request.user } และอาจารย์ { auth.get_user_model().objects.get(id = scheduler.models.Session.objects.get(id=pk).teacher_id) }\n\n"
-            content += f'ขออภัยเป็นอย่างยิ่ง เราขอยกเลิกนัดใน{ scheduler.models.Session.objects.get(id=pk).date.strftime(f"วันที่ %d เดือน %B ปี %Y") } ช่วง { timeblock[scheduler.models.Session.objects.get(id=pk).timeblock] } เนื่องจากคุณ {{self.request.user}} ไม่สะดวก กรุณานัดเวลาใหม่ในระบบอีกครั้ง'
-            content += suffix
-            send_mail(
-                "ขอยกเลิกนัด",
-                content,
-                "mvisguidance@gmail.com",
-                [
-                    self.request.user.email,
-                    auth.get_user_model()
-                    .objects.get(
-                        id=scheduler.models.Session.objects.get(id=pk).teacher_id
-                    )
-                    .email,
-                ],
-            )
+        session = scheduler.models.Session.objects.get(id=pk)
+        sendCancelMail(
+            self.request.user,
+            auth.get_user_model().objects.get(id=session.student_id),
+            auth.get_user_model().objects.get(id=session.teacher_id),
+            session.date,
+            session.timeblock,
+        )
         return reverse("users:detail", args=[user.username])
 
 
@@ -332,13 +217,22 @@ def book(request, teacher_pk):
             "days": generate_daylist(student, teacher),
             "teacher": teacher,
         }
-        return render(request, "pages/booking.html", context)
+        return render(request, "scheduler/booking.html", context)
     else:
         return redirect("/accounts/login/")
 
 
 def sessions(request):
-    context = {"sessions": Session.objects.all()}
+    profile = request.user.profile
+    user = request.user
+    sessions = get_objects_for_user(
+        user, "scheduler.view_session", with_superuser=False
+    )
+    context = {
+        "teacher_sessions": sessions.filter(teacher=profile.user),
+        "student_sessions": sessions.filter(student=profile.user),
+        "sessions": sessions,
+    }
     return render(request, "scheduler/sessions.html", context)
 
 
@@ -353,26 +247,164 @@ def home(request):
             for teacher in teachers
         ]
     }
-    return render(request, "pages/teachers.html", context)
+    return render(request, "scheduler/teachers.html", context)
 
 
-def teachertable(request):
-    student = request.user
-    teacher = User.objects.get(pk=request.user.id)
-    curr_day = datetime.date.today()
-    weekday = curr_day.strftime("%A").upper()
-    dayList = [
-        {
-            "date": curr_day,
-            "day": weekday,
-            "onduty": teacher,
+class Teacher:
+    @classmethod
+    def schedule(cls, request):
+        student = request.user
+        teacher = User.objects.get(pk=request.user.id)
+        curr_day = datetime.date.today()
+        weekday = curr_day.strftime("%A").upper()
+        dayList = [
+            {
+                "date": curr_day,
+                "day": weekday,
+                "onduty": teacher,
+            }
+        ]
+        for i in generate_daylist(student, teacher):
+            new_dict = {key: i[key] for key in ["date", "day", "onduty"]}
+            dayList.append(new_dict)
+        context = {
+            "days": dayList,
+            "teacher": teacher,
         }
-    ]
-    for i in generate_daylist(student, teacher):
-        new_dict = {key: i[key] for key in ["date", "day", "onduty"]}
-        dayList.append(new_dict)
-    context = {
-        "days": dayList,
-        "teacher": teacher,
-    }
-    return render(request, "pages/teachertable.html", context)
+        return render(request, "scheduler/teacher/booking.html", context)
+
+    @classmethod
+    def export(cls, request):
+        user = request.user
+        sessions = get_objects_for_user(
+            user, "scheduler.view_session", with_superuser=False
+        ).filter(teacher=user, date__lt=datetime.date.today())
+        content = f"เรียนอาจารย์ { user.username }\n\n"
+        content += f"ตามที่ท่านได้ขอข้อมูลการจองในอดีตไว้ เราขอส่งข้อมูลนั้นให้กับท่าน"
+        content += suffix
+        email = EmailMessage(
+            "สรุปข้อมูล",
+            content,
+            "mvisguidance@gmail.com",
+            [user.email],
+        )
+        csvfile = io.StringIO()
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(["student", "teacher", "date", "timeblock", "location"])
+        for session in sessions:
+            print(session.is_upcoming())
+            csvwriter.writerow(
+                [
+                    session.student.username,
+                    session.teacher.username,
+                    session.date.strftime(f"%d/%m/%Y"),
+                    timeblock[session.timeblock],
+                    session.location,
+                ]
+            )
+        email.attach("data.csv", csvfile.getvalue(), "text/csv")
+        email.send()
+        return redirect("/")
+
+    class TeacherSessionCreateView(LoginRequiredMixin, CreateView):
+        form_class = TeacherSessionForm
+        template_name = "scheduler/session_form.html"
+
+        def get_initial(self):
+            return {
+                "date": self.kwargs.get("date"),
+                "timeblock": self.kwargs.get("timeblock"),
+                "teacher": User.objects.get(pk=self.kwargs.get("teacher_pk")),
+                "student": self.request.user,
+            }
+
+        def form_invalid(self, form):
+            return super().form_invalid(form)
+
+        def get_success_url(self):
+            pk = self.kwargs.get("teacher_pk")
+            day = self.kwargs.get("date")
+            timeList = {
+                "allday": [chr(i) for i in range(65, 81)],
+                "allam": [chr(i) for i in range(65, 72)],
+                "allpm": [chr(i) for i in range(74, 81)],
+            }
+            if self.kwargs.get("timeblock") == "allday":
+                data = Session.objects.mydata = Session.objects.filter(
+                    date=day, teacher_id=pk
+                ).values()
+                for i in data:
+                    student = User.objects.get(pk=i["student_id"])
+                    teacher = User.objects.get(pk=i["teacher_id"])
+                    date = i["date"]
+                    tblock = i["timeblock"]
+                    sendCancelMail(self.request.user, student, teacher, date, tblock)
+                data = Session.objects.mydata = Session.objects.filter(
+                    date=day, teacher_id=pk
+                )
+                data.delete()
+
+                # save data
+                for i in timeList["allday"]:
+                    newSession = Session(
+                        student_id=pk,
+                        teacher_id=pk,
+                        date=day,
+                        timeblock=i,
+                        location="onsite",
+                    )
+                    newSession.save()
+
+            elif self.kwargs.get("timeblock") == "allam":
+                data = Session.objects.filter(
+                    date=day, teacher_id=pk, timeblock__in=timeList["allam"]
+                ).values()
+                for i in data:
+                    student = User.objects.get(pk=i["student_id"])
+                    teacher = User.objects.get(pk=i["teacher_id"])
+                    date = i["date"]
+                    tblock = i["timeblock"]
+                    sendCancelMail(self.request.user, student, teacher, date, tblock)
+                data = Session.objects.filter(
+                    date=day, teacher_id=pk, timeblock__in=timeList["allam"]
+                )
+                data.delete()
+
+                # save data
+                for i in timeList["allam"]:
+                    newSession = Session(
+                        student_id=pk,
+                        teacher_id=pk,
+                        date=day,
+                        timeblock=i,
+                        location="onsite",
+                    )
+                    newSession.save()
+            else:
+                data = Session.objects.mydata = Session.objects.filter(
+                    date=day, teacher_id=pk, timeblock__in=timeList["allpm"]
+                ).values()
+                for i in data:
+                    student = User.objects.get(pk=i["student_id"])
+                    teacher = User.objects.get(pk=i["teacher_id"])
+                    date = i["date"]
+                    tblock = i["timeblock"]
+                    sendCancelMail(self.request.user, student, teacher, date, tblock)
+                data = Session.objects.filter(
+                    date=day, teacher_id=pk, timeblock__in=timeList["allpm"]
+                )
+                data.delete()
+
+                # save data
+                for i in timeList["allpm"]:
+                    newSession = Session(
+                        student_id=pk,
+                        teacher_id=pk,
+                        date=day,
+                        timeblock=i,
+                        location="onsite",
+                    )
+                    newSession.save()
+
+            user: _User = self.request.user  # type: ignore
+            return reverse("users:detail", args=[user.username])
