@@ -1,22 +1,25 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-from django.contrib import auth, messages
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
-from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
+
 from users.forms import ProfileChangeForm
 from users.models import Profile
 
 if TYPE_CHECKING:
     from typing import Any
 
+    from django.contrib.auth.models import AbstractUser
+    from django.http import HttpRequest
+
 
 # Create your views here.
 @login_required
-def profile_detail_view(request, **kwargs):
+def profile_detail_view(request: HttpRequest, **kwargs):
     profile = Profile.objects.get(user__username=kwargs["username"])
     user = request.user
     sessions = get_objects_for_user(
@@ -35,9 +38,9 @@ def profile_detail_view(request, **kwargs):
 
 
 @login_required
-def profile_update_view(request):
+def profile_update_view(request: HttpRequest):
     context: dict[str, Any] = {}
-    profile = request.user.profile
+    profile: Profile = request.user.profile  # type:ignore
     if request.POST:
         form = ProfileChangeForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
@@ -53,10 +56,9 @@ def profile_update_view(request):
 
 
 @login_required
-def profile_redirect_view(request, **kwargs):
-    username: str
-    if "username" in kwargs:
-        username = kwargs["username"]
-    else:
-        username = request.user.username
+def profile_redirect_view(request: HttpRequest, **kwargs):
+    username: str = kwargs.get(
+        "username",
+        cast("AbstractUser", request.user).username,
+    )
     return redirect("users:detail", username=username, permanent=False)

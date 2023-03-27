@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import os
+
 from decouple import config
-from main.settings.base import *
+
+from main.settings.base import *  # pylint: disable=W0401,W0614
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -12,9 +15,19 @@ ALLOWED_HOSTS = [config("DJANGO_HOSTNAME", default="*")]
 
 CSRF_TRUSTED_ORIGINS = []
 
+# STATIC
+# ------------------------------------------------------------------------------
+# https://docs.djangoproject.com/en/dev/ref/settings/#static-root
+STATIC_ROOT = os.path.join("/var/www/MVISGuidance/", "static")
+
+# MEDIA
+# ------------------------------------------------------------------------------
+# https://docs.djangoproject.com/en/dev/ref/settings/#media-root
+MEDIA_ROOT = os.path.join("/var/www/MVISGuidance/", "media")
+
+
 # SECURITY
 # ------------------------------------------------------------------------------
-# TODO: Let nginx handle https-related settings
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-ssl-redirect
@@ -25,7 +38,7 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
-# TODO: set this to 60 seconds first and then to 518400 once you prove the former works
+# Set this to 60 seconds first and then to 518400 once you prove the former works
 SECURE_HSTS_SECONDS = 60
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
 SECURE_HSTS_INCLUDE_SUBDOMAINS = config(
@@ -43,7 +56,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = config(
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = config("EMAIL_HOST", default="")
-EMAIL_PORT = 587
+EMAIL_PORT = config("EMAIL_PORT", default="587", cast=int)
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")

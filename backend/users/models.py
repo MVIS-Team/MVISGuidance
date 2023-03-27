@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import TYPE_CHECKING, cast
 
 from django.conf import settings
@@ -8,36 +7,34 @@ from django.contrib import auth
 from django.db import models
 from django.urls import reverse
 from django.utils.deconstruct import deconstructible
-from django.utils.translation import gettext_lazy as _
 
 if TYPE_CHECKING:
     from typing import Callable, Type
 
-    from django.contrib.auth.models import User as _User
-    from users.models import Profile as _Profile
+    from django.contrib.auth.models import AbstractUser
 
-# Create your models here.
-User: Type[_User] = cast("Type[_User]", auth.get_user_model())
+User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
 @deconstructible
-class ProfileUploadPath:
-    def __call__(self, instance: _Profile, filename: str) -> str:
+class ProfileUploadPath:  # pylint: disable=R0903
+    def __call__(self, instance: Profile, filename: str) -> str:
         return f"profile/{instance.user.pk}-{filename}"
 
 
-profile_upload_path: Callable[[models.Model, str], str] = ProfileUploadPath()
+profile_upload_path: Callable[[Profile, str], str] = ProfileUploadPath()
 
 
 class Profile(models.Model):
     """Default profile for Tutor Scheduler."""
 
     #: First and last name do not cover name patterns around the globe
-    user: models.OneToOneField = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="profile"
-    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     avatar = models.ImageField(
-        upload_to=profile_upload_path,
+        upload_to=cast(
+            "Callable[[models.Model, str], str]",
+            profile_upload_path,
+        ),
         blank=True,
     )
 
@@ -48,7 +45,12 @@ class Profile(models.Model):
             str: URL for user detail.
 
         """
-        return reverse("users:redirect", kwargs={"username": self.user.username})
+        return reverse(
+            "users:redirect",
+            kwargs={
+                "username": self.user.username,
+            },
+        )
 
     def __str__(self):
         return self.name
@@ -65,4 +67,8 @@ class Profile(models.Model):
     def avatar_url(self):
         if self.user.is_superuser:
             return settings.ADMIN_PROFILE
-        return self.avatar.url if self.avatar else settings.DEFAULT_PROFILE
+        return (
+            self.avatar.url  # pylint: disable=E1101
+            if self.avatar
+            else settings.DEFAULT_PROFILE
+        )

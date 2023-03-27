@@ -6,17 +6,19 @@ from django.contrib import admin, auth
 from django.contrib.auth.admin import UserAdmin as _UserAdmin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
+
 from users.forms import ProfileChangeForm, UserChangeForm, UserCreationForm
 from users.models import Profile
 
 if TYPE_CHECKING:
     from typing import Type
 
-    from django.contrib.auth.models import User as _User
+    from django.contrib.auth.models import AbstractUser
     from django.db.models.manager import RelatedManager
+    from django.db.models.query import QuerySet
+    from django.http import HttpRequest
 
-# Register your models here.
-User: Type[_User] = cast("Type[_User]", auth.get_user_model())
+User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
 class ProfileInline(admin.StackedInline):
@@ -64,7 +66,7 @@ class UserAdmin(_UserAdmin):
     actions = ["make_teacher"]
 
     @admin.action(description="Set user as teacher")
-    def make_teacher(self, request, queryset):
-        teacher, created = Group.objects.get_or_create(name="teacher")
-        teachers: RelatedManager[_User] = teacher.user_set  # type: ignore
+    def make_teacher(self, request: HttpRequest, queryset: QuerySet[AbstractUser]):
+        teacher, _ = Group.objects.get_or_create(name="teacher")
+        teachers: RelatedManager[AbstractUser] = teacher.user_set  # type: ignore
         teachers.add(*queryset)

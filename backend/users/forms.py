@@ -6,14 +6,15 @@ from django import forms
 from django.contrib import auth
 from django.contrib.auth import forms as auth_forms
 from django.utils.translation import gettext_lazy as _
+
 from users.models import Profile
 
 if TYPE_CHECKING:
     from typing import Type
 
-    from django.contrib.auth.models import User as _User
+    from django.contrib.auth.models import AbstractUser
 
-User: Type[_User] = cast("Type[_User]", auth.get_user_model())
+User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
 class UserChangeForm(auth_forms.UserChangeForm):
@@ -36,7 +37,11 @@ class ProfileChangeForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        exclude = ["user"]
+        fields = (
+            "first_name",
+            "last_name",
+            "avatar",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -51,7 +56,7 @@ class ProfileChangeForm(forms.ModelForm):
         self.instance.user.save()
 
     def clean_avatar(self):
-        avatar = self.cleaned_data["avatar"]
+        avatar = self.cleaned_data.get("avatar")
         if not avatar:
             return avatar
         # validate content type
