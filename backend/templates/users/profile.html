@@ -1,4 +1,11 @@
-{% extends "base.html" %} {% load static %} {% load has_group %} {% load
-session_detail %} {% load profile_detail %} {% block title %} User: {{
-profile.name }} {% endblock title %} {% block content %} {% profile_detail
-profile %} {% endblock content %}
+{% extends "base.html" %}
+{% load static %}
+{% load has_group %}
+{% load session_detail %}
+{% load profile_detail %}
+{% block title %}
+  User: {{ profile.name }}
+{% endblock title %}
+{% block content %}
+  {% profile_detail profile %}
+{% endblock content %}

@@ -1,75 +1,66 @@
-{% load static i18n %} {% load static %} {% load has_group %} {% load pwa %} {%
-get_current_language as LANGUAGE_CODE %}
+{% load static i18n %}
+{% load static %}
+{% load has_group %}
+{% load pwa %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <title>{% block title %} MVIS {% endblock title %}</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <meta
-      name="description"
-      content="MWIT Very Intelligent System but for Guidance Department"
-    />
+    <title>
+      {% block title %}
+        MVIS
+      {% endblock title %}
+    </title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description"
+          content="MWIT Very Intelligent System but for Guidance Department"/>
     <meta name="author" content="Tyler Kim" />
     <meta name="keywords" content="" />
     <!-- Setup PWA -->
     {% progressive_web_app_meta %}
     <!-- CSS -->
     {% block css %}
-    <!-- Latest compiled and minified Bootstrap CSS -->
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-      crossorigin="anonymous"
-      defer
-    />
-    <!-- Your stuff: Third-party CSS libraries go here -->
-    <!-- This file stores project-specific CSS -->
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{% static 'css/project.css' %}"
-      defer
-    />
+      <!-- Latest compiled and minified Bootstrap CSS -->
+      <link rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+            integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+            crossorigin="anonymous"
+            defer/>
+      <!-- Your stuff: Third-party CSS libraries go here -->
+      <!-- This file stores project-specific CSS -->
+      <link rel="stylesheet"
+            type="text/css"
+            href="{% static 'css/project.css' %}"
+            defer/>
     {% endblock css %}
     <!-- Javascript -->
-    {# Placed at the top of the document so pages load faster with defer #} {%
-    block javascript %}
-    <!-- Your stuff: Third-party javascript libraries go here -->
-    <script
-      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-      crossorigin="anonymous"
-      defer
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-      crossorigin="anonymous"
-      defer
-    ></script>
-    <!-- Bootstrap JS -->
-    <script
-      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-      crossorigin="anonymous"
-      defer
-    ></script>
-    <!-- place project specific Javascript in this file -->
-    <script defer src="{% static 'js/project.js' %}"></script>
+    {# Placed at the top of the document so pages load faster with defer #}
+    {% block javascript %}
+      <!-- Your stuff: Third-party javascript libraries go here -->
+      <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+              integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+              crossorigin="anonymous"
+              defer></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+              integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+              crossorigin="anonymous"
+              defer></script>
+      <!-- Bootstrap JS -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+              integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+              crossorigin="anonymous"
+              defer></script>
+      <!-- place project specific Javascript in this file -->
+      <script defer src="{% static 'js/project.js' %}"></script>
     {% endblock javascript %}
   </head>
   <body>
     <header class="site-header">
       <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
-        <a class="navbar-brand mr-4" href="{% url 'scheduler-home' %}"
-          >MWIT Guidance Department</a
-        >
+        <a class="navbar-brand mr-4" href="{% url 'scheduler-home' %}">MWIT Guidance Department</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -77,8 +68,7 @@ get_current_language as LANGUAGE_CODE %}
           data-target="#navbarToggle"
           aria-controls="navbarToggle"
           aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
+          aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         {% block navbar %}
@@ -103,21 +93,15 @@ get_current_language as LANGUAGE_CODE %}
                 data-toggle="dropdown"
                 aria-haspopup="true"
                 aria-expanded="false"
-                >Teacher</a
-              >
+                >Teacher</a>
               <ul
                 class="dropdown-menu dropdown-menu-dark bg-steel"
-                aria-labelledby="navbarDropdown"
-              >
+                aria-labelledby="navbarDropdown">
                 <li class="nav-item dropdown-item">
-                  <a class="nav-link" href="{% url 'teacher-scheduler-book' %}"
-                    >Self-booking</a
-                  >
+                  <a class="nav-link" href="{% url 'teacher-scheduler-book' %}">Self-booking</a>
                 </li>
                 <li class="nav-item dropdown-item">
-                  <a class="nav-link" href="{% url 'session-list' %}"
-                    >Sessions</a
-                  >
+                  <a class="nav-link" href="{% url 'session-list' %}">Sessions</a>
                 </li>
               </ul>
             </li>
@@ -130,24 +114,20 @@ get_current_language as LANGUAGE_CODE %}
               <a
                 class="nav-link"
                 href="{% url 'users:detail' request.user.username %}"
-                >Profile</a
-              >
+                >Profile</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'account_logout' %}"
-                >{% translate "Sign Out" %}</a
-              >
+                >{% translate "Sign Out" %}</a>
             </li>
             {% else %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'account_login' %}"
-                >{% translate "Sign In" %}</a
-              >
+                >{% translate "Sign In" %}</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'account_signup' %}"
-                >{% translate "Sign Up" %}</a
-              >
+                >{% translate "Sign Up" %}</a>
             </li>
             {% endif %}
           </ul>
@@ -155,36 +135,31 @@ get_current_language as LANGUAGE_CODE %}
         {% endblock navbar %}
       </nav>
     </header>
-    {% if messages %} {% for message in messages %}
-    <div
-      class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}"
-    >
-      {{ message.message }}
-    </div>
-    {% endfor %} {% endif %}
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+          {{ message.message }}
+        </div>
+      {% endfor %}
+    {% endif %}
     <main class="container">
       {% block content %}
-      <p>Use this document as a way to quick start any new project.</p>
+        <p>Use this document as a way to quick start any new project.</p>
       {% endblock content %}
     </main>
-    {% block modal %} {% endblock modal %} {% block inline_javascript %} {%
-    endblock inline_javascript %}
+    {% block modal %}
+    {% endblock modal %}
+    {% block inline_javascript %}
+    {% endblock inline_javascript %}
     <footer>
-      <p
-        style="
-          max-width: 500px;
-          margin: 10px auto;
-          margin-right: 30px;
-          line-height: 28px;
-          font-size: 14px;
-          color: black;
-          text-align: right;
-        "
-      >
-        Modified from
-        <a href="https://tylertaewook.com/projects/tutorscheduler"
-          >Kent Tutor Scheduler</a
-        >
+      <p style="max-width: 500px;
+                margin: 10px auto;
+                margin-right: 30px;
+                line-height: 28px;
+                font-size: 14px;
+                color: black;
+                text-align: right">
+        Modified from <a href="https://tylertaewook.com/projects/tutorscheduler">Kent Tutor Scheduler</a>
       </p>
     </footer>
   </body>
