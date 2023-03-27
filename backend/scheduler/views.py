@@ -41,21 +41,19 @@ def generate_daylist(student: AbstractUser, teacher: AbstractUser):
         day["dept"] = ""
         day["booked"] = {}
         for key, time in Session.TIMEBLOCK_CHOICES:
+            start_time = datetime.datetime.strptime(
+                curr_day.strftime("%d/%m/%Y") + " " + time.split("-", maxsplit=1)[0],
+                "%d/%m/%Y %H:%M",
+            )
             day["booked"][key] = (
                 time,
-                Session.objects.filter(
+                start_time < earliest_book_time
+                or Session.objects.filter(
                     Q(date=str(curr_day))
                     & Q(timeblock=key)
                     & (Q(teacher=teacher) | Q(student=student))
                 ).exists(),
             )
-        for key, time in Session.TIMEBLOCK_CHOICES:
-            start_time = datetime.datetime.strptime(
-                curr_day.strftime("%d/%m/%Y") + " " + time.split("-", maxsplit=1)[0],
-                "%d/%m/%Y %H:%M",
-            )
-            if start_time < earliest_book_time:
-                day["booked"][i] = (time, True)
 
         if day["day"] not in [
             "SATURDAY",
@@ -77,7 +75,7 @@ def send_session_create_mail(
             .encode()
             .decode("unicode-escape")
         )
-        timeblock = Session.TIMEBLOCK_CHOICES[session.timeblock]
+        timeblock = dict(Session.TIMEBLOCK_CHOICES)[session.timeblock]  # type: ignore
         meet_url = f"https://meet.google.com/lookup/{session.teacher.username}"
         send_mail(
             "จองเวลาคุยกับอาจารย์",
@@ -109,7 +107,7 @@ def send_session_edit_mail(
             .encode()
             .decode("unicode-escape")
         )
-        timeblock = Session.TIMEBLOCK_CHOICES[session.timeblock]
+        timeblock = dict(Session.TIMEBLOCK_CHOICES)[session.timeblock]  # type: ignore
         meet_url = f"https://meet.google.com/lookup/{session.teacher.username}"
         send_mail(
             "ขอยกเลิกนัด",
@@ -142,7 +140,7 @@ def send_session_cancel_mail(
             .encode()
             .decode("unicode-escape")
         )
-        timeblock = Session.TIMEBLOCK_CHOICES[session.timeblock]
+        timeblock = dict(Session.TIMEBLOCK_CHOICES)[session.timeblock]  # type: ignore
         send_mail(
             "ขอยกเลิกนัด",
             (
