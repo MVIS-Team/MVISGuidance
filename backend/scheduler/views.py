@@ -1,19 +1,21 @@
 from __future__ import annotations
 
+import csv
 import datetime
+import io
 from typing import TYPE_CHECKING, cast
 
 from django.contrib import auth
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage, send_mail
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, DeleteView, UpdateView
 from guardian.mixins import LoginRequiredMixin, PermissionRequiredMixin
-
+from guardian.shortcuts import get_objects_for_user
 from scheduler.forms import SessionForm, TeacherSessionForm
 from scheduler.models import Session
 
@@ -27,7 +29,7 @@ User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 def generate_daylist(student: AbstractUser, teacher: AbstractUser):
     if not teacher:
-        return {}
+        return []
     daylist = []
     earliest_book_time = datetime.datetime.now() + datetime.timedelta(hours=12)
     startday = datetime.date.today()
@@ -160,49 +162,6 @@ def send_session_cancel_mail(
         )
 
 
-class TeacherSchedule(LoginRequiredMixin, CreateView):
-    form_class = TeacherSessionForm
-    template_name = "scheduler/session_form.html"
-
-    def get_initial(self):
-        return {
-            "date": self.kwargs.get("date"),
-            "timeblock": self.kwargs.get("timeblock"),
-            "teacher": User.objects.get(pk=self.kwargs.get("teacher_pk")),
-            "student": self.request.user,
-        }
-
-    def get_success_url(self):
-        teacher_id = self.kwargs.get("teacher_pk")
-        user = cast("AbstractUser", self.request.user)
-        day = self.kwargs.get("date")
-        time_list = {
-            "allday": [chr(i) for i in range(65, 81)],
-            "allam": [chr(i) for i in range(65, 72)],
-            "allpm": [chr(i) for i in range(74, 81)],
-        }[self.kwargs.get("timeblock")]
-        sessions = Session.objects.filter(
-            date=day,
-            teacher_id=teacher_id,
-            timeblock__in=time_list,
-        )
-        for session in sessions:
-            send_session_cancel_mail(user, session)
-        sessions.delete()
-
-        for timeblock in time_list:
-            session = Session(
-                student_id=teacher_id,
-                teacher_id=teacher_id,
-                date=day,
-                timeblock=timeblock,
-                location="onsite",
-            )
-            session.save()
-
-        return reverse("users:detail", args=[user.username])
-
-
 class SessionCreateView(LoginRequiredMixin, CreateView):
     form_class = SessionForm
     template_name = "scheduler/session_form.html"
@@ -268,7 +227,22 @@ def book(request, teacher_pk):
         "days": generate_daylist(student, teacher),
         "teacher": teacher,
     }
-    return render(request, "pages/booking.html", context)
+    return render(request, "scheduler/booking.html", context)
+
+
+def sessions_list(request):
+    profile = request.user.profile
+    user = request.user
+    sessions = get_objects_for_user(
+        user, "scheduler.view_session", with_superuser=False
+    )
+    context = {
+        "user": user,
+        "teacher_sessions": sessions.filter(teacher=profile.user),
+        "student_sessions": sessions.filter(student=profile.user),
+        "sessions": sessions,
+    }
+    return render(request, "scheduler/sessions.html", context)
 
 
 def home(request):
@@ -282,26 +256,109 @@ def home(request):
             for teacher in teachers
         ]
     }
-    return render(request, "pages/teachers.html", context)
+    return render(request, "scheduler/teachers.html", context)
 
 
-def teachertable(request):
-    student = request.user
-    teacher = User.objects.get(pk=request.user.id)
-    curr_day = datetime.date.today()
-    weekday = curr_day.strftime("%A").upper()
-    day_list = [
-        {
-            "date": curr_day,
-            "day": weekday,
-            "onduty": teacher,
+class Teacher:
+    @classmethod
+    def schedule(cls, request):
+        student = request.user
+        teacher = User.objects.get(pk=request.user.id)
+        curr_day = datetime.date.today()
+        weekday = curr_day.strftime("%A").upper()
+        day_list = [
+            {
+                "date": curr_day,
+                "day": weekday,
+                "onduty": teacher,
+            }
+        ]
+        for i in generate_daylist(student, teacher):
+            new_dict = {key: i[key] for key in ["date", "day", "onduty"]}
+            day_list.append(new_dict)
+        context = {
+            "days": day_list,
+            "teacher": teacher,
         }
-    ]
-    for i in generate_daylist(student, teacher):
-        new_dict = {key: i[key] for key in ["date", "day", "onduty"]}
-        day_list.append(new_dict)
-    context = {
-        "days": day_list,
-        "teacher": teacher,
-    }
-    return render(request, "pages/teachertable.html", context)
+        return render(request, "scheduler/teacher/booking.html", context)
+
+    @classmethod
+    def export(cls, request):
+        user = request.user
+        sessions = get_objects_for_user(
+            user, "scheduler.view_session", with_superuser=False
+        ).filter(teacher=user, date__lt=datetime.date.today())
+        content = (
+                    f"เรียนอาจารย์ { user.username }"
+                    "\n\n"
+                    f"ตามที่ท่านได้ขอข้อมูลการจองในอดีตไว้ เราขอส่งข้อมูลนั้นให้กับท่าน"
+                    "\n\n"
+                    "MVIS ยินดีอย่างยิ่งที่ได้รับใช้ท่าน"
+                    "\n"
+                    "อย่าลืมนัดนะง้าบบบ"
+                )
+        email = EmailMessage(
+            "สรุปข้อมูล",
+            content,
+            "mvisguidance@gmail.com",
+            [user.email],
+        )
+        csvfile = io.StringIO()
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(["student", "teacher", "date", "timeblock", "location"])
+        for session in sessions:
+            print(session.is_upcoming())
+            csvwriter.writerow(
+                [
+                    session.student.username,
+                    session.teacher.username,
+                    session.date.strftime(f"%d/%m/%Y"),
+                    dict(Session.TIMEBLOCK_CHOICES)[session.timeblock],
+                    session.location,
+                ]
+            )
+        email.attach("data.csv", csvfile.getvalue(), "text/csv")
+        email.send()
+        return redirect("/")
+
+    class TeacherSessionCreateView(LoginRequiredMixin, CreateView):
+        form_class = TeacherSessionForm
+        template_name = "scheduler/session_form.html"
+
+        def get_initial(self):
+            return {
+                "date": self.kwargs.get("date"),
+                "timeblock": self.kwargs.get("timeblock"),
+                "teacher": User.objects.get(pk=self.kwargs.get("teacher_pk")),
+                "student": self.request.user,
+            }
+
+        def get_success_url(self):
+            teacher_id = self.kwargs.get("teacher_pk")
+            user = cast("AbstractUser", self.request.user)
+            day = self.kwargs.get("date")
+            time_list = {
+                "allday": [chr(i) for i in range(65, 81)],
+                "allam": [chr(i) for i in range(65, 72)],
+                "allpm": [chr(i) for i in range(74, 81)],
+            }[self.kwargs.get("timeblock")]
+            sessions = Session.objects.filter(
+                date=day,
+                teacher_id=teacher_id,
+                timeblock__in=time_list,
+            )
+            for session in sessions:
+                send_session_cancel_mail(user, session)
+            sessions.delete()
+
+            for timeblock in time_list:
+                session = Session(
+                    student_id=teacher_id,
+                    teacher_id=teacher_id,
+                    date=day,
+                    timeblock=timeblock,
+                    location="onsite",
+                )
+                session.save()
+
+            return reverse("users:detail", args=[user.username])
