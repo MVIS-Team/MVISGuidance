@@ -1,10 +1,13 @@
+from typing import TYPE_CHECKING
+
 from django import template
-from django.contrib.auth.models import Group
+
+if TYPE_CHECKING:
+    from django.contrib.auth.models import AbstractUser
 
 register = template.Library()
 
 
 @register.filter(name="has_group")
-def has_group(user, group_name):
-    group = Group.objects.get(name=group_name)
-    return True if group in user.groups.all() else False
+def has_group(user: AbstractUser, group_name: str):  # pylint: disable=E0601
+    return user.groups.filter(name=group_name).exists()

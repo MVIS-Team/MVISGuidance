@@ -8,4 +8,4 @@ class Command(BaseCommand):
     help = "Initialize user group(s)"
 
     def handle(self, *args, **kwargs):
-        teacher_group, created = Group.objects.get_or_create(name="teacher")
+        Group.objects.get_or_create(name="teacher")

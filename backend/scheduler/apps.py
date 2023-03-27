@@ -8,4 +8,4 @@ class SchedulerConfig(AppConfig):
     name = "scheduler"
 
     def ready(self):
-        import scheduler.signals
+        import scheduler.signals  # noqa # pylint: disable=C0415,W0611

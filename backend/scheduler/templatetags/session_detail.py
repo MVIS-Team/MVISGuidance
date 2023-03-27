@@ -13,7 +13,9 @@ register = template.Library()
 
 
 @register.inclusion_tag(
-    "scheduler/session_detail.html", name="session_detail", takes_context=True
+    "scheduler/session_detail.html",
+    name="session_detail",
+    takes_context=True,
 )
 def session_detail(
     context: dict[str, Any],
