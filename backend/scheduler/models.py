@@ -13,11 +13,11 @@ from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 if TYPE_CHECKING:
-    from typing import Optional, Sequence, Type
+    from typing import Type
 
-    from django.contrib.auth.models import User as _User
+    from django.contrib.auth.models import AbstractUser
 
-User: Type[_User] = cast("Type[_User]", auth.get_user_model())
+User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
 class Session(models.Model):
@@ -44,24 +44,24 @@ class Session(models.Model):
         ("online", "Online"),
     )
 
-    student: models.ForeignKey = models.ForeignKey(
+    student = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="student_session",
     )
-    teacher: models.ForeignKey = models.ForeignKey(
+    teacher = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="teacher_session",
     )
-    date_posted: models.DateTimeField = models.DateTimeField(default=timezone.now)
-    date: models.DateField = models.DateField(default=timezone.now)
-    timeblock: models.CharField = models.CharField(
+    date_posted = models.DateTimeField(default=timezone.now)
+    date = models.DateField(default=timezone.now)
+    timeblock = models.CharField(
         max_length=1,
         choices=TIMEBLOCK_CHOICES,
         default="A",
     )
-    location: models.CharField = models.CharField(
+    location = models.CharField(
         max_length=6,
         choices=LOCATION_CHOICES,
         default="onsite",
@@ -69,9 +69,9 @@ class Session(models.Model):
 
     @property
     def time(self):
-        return dict(self.TIMEBLOCK_CHOICES)[self.timeblock]
+        return dict(self.TIMEBLOCK_CHOICES)[self.timeblock]  # type: ignore
 
-    def validate_constraints(self, exclude: Optional[Sequence[str]] = None):
+    def validate_constraints(self, exclude=None):
         if exclude is None:
             exclude = []
         if "teacher" not in exclude:
@@ -141,10 +141,10 @@ class Session(models.Model):
 
     @property
     def get_weekday(self):
-        return self.date.strftime("%A")
+        return self.date.strftime("%A")  # pylint: disable=E1101
 
     def __str__(self) -> str:
-        return f"{self.date} {self.time} ({self.teacher.profile.name} {self.student.profile.name})"
+        return f"{self.date} {self.time} ({self.teacher.profile.name} {self.student.profile.name})"  # type: ignore
 
     def get_absolute_url(self):
         # returns a complete url string and let view handle the redirect

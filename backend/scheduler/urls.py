@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from django.urls import path, register_converter
+
 from scheduler import views
 
 
@@ -19,25 +20,39 @@ class DateConverter:
 register_converter(DateConverter, "yyyy")
 
 urlpatterns = [
-    path("home/", views.home, name="scheduler-home"),
-    path("book/<int:teacher_pk>", views.book, name="scheduler-book"),
     path(
-        "sessions/new/<int:teacher_pk>/<yyyy:date>/<str:timeblock>",
-        views.SessionCreateView.as_view(),
-        name="session-create-spec",
+        "home/",
+        name="scheduler-home",
+        view=views.home,
     ),
     path(
-        "sessions/<int:pk>/edit", views.SessionEditView.as_view(), name="session-edit"
+        "book/<int:teacher_pk>",
+        name="scheduler-book",
+        view=views.book,
+    ),
+    path(
+        "sessions/new/<int:teacher_pk>/<yyyy:date>/<str:timeblock>",
+        name="session-create-spec",
+        view=views.SessionCreateView.as_view(),
+    ),
+    path(
+        "sessions/<int:pk>/edit",
+        name="session-edit",
+        view=views.SessionEditView.as_view(),
     ),
     path(
         "sessions/<int:pk>/cancel",
-        views.SessionCancelView.as_view(),
         name="session-cancel",
+        view=views.SessionCancelView.as_view(),
     ),
-    path("teacherSchedule/", views.teachertable, name="teachertable"),
+    path(
+        "teacherSchedule/",
+        name="teachertable",
+        view=views.teachertable,
+    ),
     path(
         "sessions/new/teacherSchedule/<int:teacher_pk>/<yyyy:date>/<str:timeblock>",
-        views.TeacherSchedule.as_view(),
         name="teacherSchedule",
+        view=views.TeacherSchedule.as_view(),
     ),
 ]

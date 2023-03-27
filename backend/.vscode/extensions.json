@@ -1,6 +1,11 @@
 {
     "recommendations": [
+        "batisteo.vscode-django",
+        "monosans.djlint",
+        "ms-python.flake8",
+        "ms-python.isort",
         "ms-python.python",
-        "batisteo.vscode-django"
+        "ms-python.pylint",
+        "ms-python.vscode-pylance"
     ]
 }

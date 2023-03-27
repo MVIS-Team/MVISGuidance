@@ -1,5 +1,8 @@
 {
     "python.formatting.provider": "black",
     "python.linting.mypyEnabled": true,
-    "python.analysis.typeCheckingMode": "basic"
+    "python.analysis.typeCheckingMode": "basic",
+    "python.linting.pylintEnabled": true,
+    "python.linting.flake8Enabled": true,
+    "files.eol": "\n"
 }
