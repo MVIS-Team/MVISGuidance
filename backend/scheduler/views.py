@@ -30,8 +30,10 @@ def generate_daylist(student: AbstractUser, teacher: AbstractUser):
         return {}
     daylist = []
     earliest_book_time = datetime.datetime.now() + datetime.timedelta(hours=12)
-    startday = datetime.date.today() + datetime.timedelta(days=1)
-    for i in range(7):
+    startday = datetime.date.today()
+    if startday.weekday() > 4:
+        startday += datetime.timedelta(days=7 - startday.weekday())
+    for i in range(5 - startday.weekday()):
         day: dict[str, Any] = {}
         curr_day = startday + datetime.timedelta(days=i)
         weekday = curr_day.strftime("%A").upper()
@@ -57,11 +59,7 @@ def generate_daylist(student: AbstractUser, teacher: AbstractUser):
             if start_time < earliest_book_time:
                 day["booked"][i] = (time, True)
 
-        if day["day"] not in [
-            "SATURDAY",
-            "SUNDAY",
-        ]:
-            daylist.append(day)
+        daylist.append(day)
     return daylist
 
 
