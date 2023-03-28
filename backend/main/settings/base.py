@@ -244,19 +244,16 @@ LOGGING = {
 
 # django-allauth
 # ------------------------------------------------------------------------------
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ALLOW_REGISTRATION = config(
     "DJANGO_ACCOUNT_ALLOW_REGISTRATION", default=True, cast=bool
 )
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "users.adapters.AccountAdapter"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = "users.adapters.SocialAccountAdapter"
+ACCOUNT_FORMS = {"signup": "users.forms.SignupFormCustom"}
 
 # Django PWA
 # ------------------------------------------------------------------------------
@@ -290,7 +287,7 @@ ANONYMOUS_USER_NAME = None
 
 # Custom settings
 # ------------------------------------------------------------------------------
-DEFAULT_PROFILE = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+DEFAULT_PROFILE = "https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg"
 ADMIN_PROFILE = (
     "https://upload.wikimedia.org/wikipedia/commons/b/b4/Wikipe-tan_avatar.png"
 )
