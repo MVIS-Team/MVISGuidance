@@ -34,7 +34,6 @@ class SignupFormCustom(SignupForm):
         avatar = self.cleaned_data.get("avatar")
         if not hasattr(avatar, "content_type"):
             return avatar
-        # validate content type
         main, sub = avatar.content_type.split("/")
         if not (main == "image" and sub in ["jpeg", "pjpeg", "gif", "png"]):
             raise forms.ValidationError("Please use a JPEG, GIF or PNG image.")
@@ -86,7 +85,6 @@ class ProfileChangeForm(forms.ModelForm):
         avatar = self.cleaned_data.get("avatar")
         if not hasattr(avatar, "content_type"):
             return avatar
-        # validate content type
         main, sub = avatar.content_type.split("/")
         if not (main == "image" and sub in ["jpeg", "pjpeg", "gif", "png"]):
             raise forms.ValidationError("Please use a JPEG, GIF or PNG image.")

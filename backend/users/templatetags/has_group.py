@@ -12,6 +12,4 @@ if TYPE_CHECKING:
 
 @register.filter(name="has_group")
 def has_group(user: AbstractUser, group_name: str):
-    if not user or not group_name:
-        return False
-    return user.groups.filter(name=group_name).exists()
+    return user and group_name and user.groups.filter(name=group_name).exists()

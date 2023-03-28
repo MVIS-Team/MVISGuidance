@@ -20,9 +20,6 @@ User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
 class Profile(models.Model):
-    """Default profile for Tutor Scheduler."""
-
-    #: First and last name do not cover name patterns around the globe
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     avatar = models.ImageField(
         upload_to="profile",
@@ -30,12 +27,6 @@ class Profile(models.Model):
     )
 
     def get_absolute_url(self):
-        """Get url for user's detail view.
-
-        Returns:
-            str: URL for user detail.
-
-        """
         return reverse(
             "users:redirect",
             kwargs={
