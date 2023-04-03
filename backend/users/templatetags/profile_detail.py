@@ -21,5 +21,5 @@ def profile_detail(
 ):
     return {
         "profile": profile,
-        "user": context["user"],
+        "user": context.get("user"),
     }

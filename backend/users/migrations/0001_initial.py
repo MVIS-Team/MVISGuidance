@@ -3,7 +3,13 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import users.models
+from django.utils.deconstruct import deconstructible
+
+
+@deconstructible
+class ProfileUploadPath:
+    def __call__(self, instance, filename):
+        return f"profile/{instance.user.pk}-{filename}"
 
 
 class Migration(migrations.Migration):
@@ -29,9 +35,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "avatar",
-                    models.ImageField(
-                        blank=True, upload_to=users.models.ProfileUploadPath()
-                    ),
+                    models.ImageField(blank=True, upload_to=ProfileUploadPath()),
                 ),
                 (
                     "user",

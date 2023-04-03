@@ -11,7 +11,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-# Create your models here.
 if TYPE_CHECKING:
     from typing import Type
 
@@ -85,29 +84,26 @@ class Session(models.Model):
             if not self.is_upcoming():
                 raise ValidationError("You shall not book.")
         if "date_posted" not in exclude:
-            # date_posted is forced to be datetime.now() via rest-api
-            pass
-            # if self.date_posted is None:
-            #     raise ValidationError("What a great day, right?")
-            # if self.date_posted != timezone.now():
-            #     raise ValidationError("Back to the future?")
+            if self.date_posted is None:
+                raise ValidationError("What a great day, right?")
+            if self.date_posted != timezone.now():
+                raise ValidationError("Back to the future?")
         if (
             "data" not in exclude
             and "timeblock" not in exclude
             and "location" not in exclude
+            and self.location not in ("onsite", "online")
         ):
-            # onsite and online is not a restricted location
-            pass
-            # if (
-            #     type(self)
-            #     .objects.filter(
-            #         Q(date=self.date)
-            #         & Q(timeblock=self.timeblock)
-            #         & Q(location=self.location)
-            #     )
-            #     .exists()
-            # ):
-            #     raise ValidationError("Oops, the room is not avaliable.")
+            if (
+                type(self)
+                .objects.filter(
+                    Q(date=self.date)
+                    & Q(timeblock=self.timeblock)
+                    & Q(location=self.location)
+                )
+                .exists()
+            ):
+                raise ValidationError("Oops, the room is not avaliable.")
         if (
             "data" not in exclude
             and "timeblock" not in exclude
@@ -131,13 +127,8 @@ class Session(models.Model):
                 raise ValidationError("Oops, somebody has already booked at this slot.")
         return super().validate_constraints(exclude=exclude)  # type: ignore
 
-    # @property
     def is_upcoming(self):
         return date.today() <= self.date
-
-    # is_upcoming.admin_order_field = "date"
-    # is_upcoming.boolean = True
-    # is_upcoming.short_description = "Session in the future?"
 
     @property
     def get_weekday(self):
@@ -147,7 +138,6 @@ class Session(models.Model):
         return f"{self.date} {self.time} ({self.teacher.profile.name} {self.student.profile.name})"  # type: ignore
 
     def get_absolute_url(self):
-        # returns a complete url string and let view handle the redirect
         return reverse("session-detail", kwargs={"pk": self.pk})
 
 

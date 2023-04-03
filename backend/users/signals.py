@@ -50,5 +50,6 @@ def delete_profile(
     instance: AbstractUser,
     **kwargs,
 ):  # pylint: disable=W0613
-    profile: Profile = instance.profile  # type: ignore
-    profile.delete()
+    if hasattr(instance, "profile"):
+        profile: Profile = instance.profile
+        profile.delete()

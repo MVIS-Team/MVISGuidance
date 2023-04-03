@@ -45,21 +45,19 @@ def generate_daylist(student: AbstractUser, teacher: AbstractUser):
         day["dept"] = ""
         day["booked"] = {}
         for key, time in Session.TIMEBLOCK_CHOICES:
+            start_time = datetime.datetime.strptime(
+                curr_day.strftime("%d/%m/%Y") + " " + time.split("-", maxsplit=1)[0],
+                "%d/%m/%Y %H:%M",
+            )
             day["booked"][key] = (
                 time,
-                Session.objects.filter(
+                start_time < earliest_book_time
+                or Session.objects.filter(
                     Q(date=str(curr_day))
                     & Q(timeblock=key)
                     & (Q(teacher=teacher) | Q(student=student))
                 ).exists(),
             )
-        for key, time in Session.TIMEBLOCK_CHOICES:
-            start_time = datetime.datetime.strptime(
-                curr_day.strftime("%d/%m/%Y") + " " + time.split("-", maxsplit=1)[0],
-                "%d/%m/%Y %H:%M",
-            )
-            if start_time < earliest_book_time:
-                day["booked"][i] = (time, True)
 
         daylist.append(day)
     return daylist
@@ -77,7 +75,7 @@ def send_session_create_mail(
             .encode()
             .decode("unicode-escape")
         )
-        timeblock = Session.TIMEBLOCK_CHOICES[session.timeblock]
+        timeblock = dict(Session.TIMEBLOCK_CHOICES)[session.timeblock]  # type: ignore
         meet_url = f"https://meet.google.com/lookup/{session.teacher.username}"
         send_mail(
             "จองเวลาคุยกับอาจารย์",
@@ -93,7 +91,7 @@ def send_session_create_mail(
                 "\n"
                 "อย่าลืมนัดนะง้าบบบ"
             ),
-            "mvisguidance@gmail.com",
+            None,
             [session.student.email, session.teacher.email],
         )
 
@@ -109,7 +107,7 @@ def send_session_edit_mail(
             .encode()
             .decode("unicode-escape")
         )
-        timeblock = Session.TIMEBLOCK_CHOICES[session.timeblock]
+        timeblock = dict(Session.TIMEBLOCK_CHOICES)[session.timeblock]  # type: ignore
         meet_url = f"https://meet.google.com/lookup/{session.teacher.username}"
         send_mail(
             "ขอยกเลิกนัด",
@@ -125,7 +123,7 @@ def send_session_edit_mail(
                 "\n"
                 "อย่าลืมนัดนะง้าบบบ"
             ),
-            "mvisguidance@gmail.com",
+            None,
             [session.student.email, session.teacher.email],
         )
 
@@ -142,7 +140,7 @@ def send_session_cancel_mail(
             .encode()
             .decode("unicode-escape")
         )
-        timeblock = Session.TIMEBLOCK_CHOICES[session.timeblock]
+        timeblock = dict(Session.TIMEBLOCK_CHOICES)[session.timeblock]  # type: ignore
         send_mail(
             "ขอยกเลิกนัด",
             (
@@ -157,7 +155,7 @@ def send_session_cancel_mail(
                 "\n"
                 "อย่าลืมนัดนะง้าบบบ"
             ),
-            "mvisguidance@gmail.com",
+            None,
             [session.student.email, session.teacher.email],
         )
 
@@ -289,18 +287,18 @@ class Teacher:
             user, "scheduler.view_session", with_superuser=False
         ).filter(teacher=user, date__lt=datetime.date.today())
         content = (
-                    f"เรียนอาจารย์ { user.username }"
-                    "\n\n"
-                    f"ตามที่ท่านได้ขอข้อมูลการจองในอดีตไว้ เราขอส่งข้อมูลนั้นให้กับท่าน"
-                    "\n\n"
-                    "MVIS ยินดีอย่างยิ่งที่ได้รับใช้ท่าน"
-                    "\n"
-                    "อย่าลืมนัดนะง้าบบบ"
-                )
+            f"เรียนอาจารย์ { user.username }"
+            "\n\n"
+            f"ตามที่ท่านได้ขอข้อมูลการจองในอดีตไว้ เราขอส่งข้อมูลนั้นให้กับท่าน"
+            "\n\n"
+            "MVIS ยินดีอย่างยิ่งที่ได้รับใช้ท่าน"
+            "\n"
+            "อย่าลืมนัดนะง้าบบบ"
+        )
         email = EmailMessage(
             "สรุปข้อมูล",
             content,
-            "mvisguidance@gmail.com",
+            None,
             [user.email],
         )
         csvfile = io.StringIO()
@@ -312,7 +310,7 @@ class Teacher:
                 [
                     session.student.username,
                     session.teacher.username,
-                    session.date.strftime(f"%d/%m/%Y"),
+                    session.date.strftime("%d/%m/%Y"),
                     dict(Session.TIMEBLOCK_CHOICES)[session.timeblock],
                     session.location,
                 ]

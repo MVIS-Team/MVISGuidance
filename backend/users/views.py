@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from django.http import HttpRequest
 
 
-# Create your views here.
 @login_required
 def profile_detail_view(request: HttpRequest, **kwargs):
     profile = Profile.objects.get(user__username=kwargs["username"])

@@ -49,5 +49,4 @@ class TeacherSessionForm(forms.ModelForm):
             "teacher",
             "date",
             "timeblock",
-            # "location",
         )
