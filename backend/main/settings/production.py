@@ -36,8 +36,7 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
-# Set this to 60 seconds first and then to 518400 once you prove the former works
-SECURE_HSTS_SECONDS = 60
+SECURE_HSTS_SECONDS = 518400  # Set this to 60 seconds first and then to 518400 once you prove the former works
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
 SECURE_HSTS_INCLUDE_SUBDOMAINS = config(
     "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True, cast=bool
@@ -55,6 +54,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = config(
 EMAIL_HOST = config("EMAIL_HOST", default="")
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-port
 EMAIL_PORT = config("EMAIL_PORT", default="587", cast=int)
+# https://docs.djangoproject.com/en/dev/ref/settings/#email-host-user
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+# https://docs.djangoproject.com/en/dev/ref/settings/#email-host-password
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-use-lts
 EMAIL_USE_TLS = True
 

@@ -85,10 +85,6 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="mvisguidance@gmail.co
 EMAIL_SUBJECT_PREFIX = config("EMAIL_SUBJECT_PREFIX", default="[MVISGuidance]")
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# https://docs.djangoproject.com/en/dev/ref/settings/#email-host-user
-EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
-# https://docs.djangoproject.com/en/dev/ref/settings/#email-host-password
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
