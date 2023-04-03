@@ -13,8 +13,9 @@ def main():
         config("DJANGO_SETTINGS_MODULE", default="main.settings.development"),
     )
     try:
-        from django.core.management import \
-            execute_from_command_line  # pylint: disable=C0415
+        from django.core.management import (  # pylint: disable=C0415
+            execute_from_command_line,
+        )
     except ImportError as exc:
         raise ImportError(
             "Couldn't import Django. Are you sure it's installed and "
