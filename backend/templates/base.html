@@ -1,5 +1,5 @@
 {% load static i18n %}
-{% load static  %}
+{% load static %}
 {% load has_group %}
 {% load pwa %}
 {% get_current_language as LANGUAGE_CODE %}
@@ -40,10 +40,19 @@
     {# Placed at the top of the document so pages load faster with defer #}
     {% block javascript %}
       <!-- Your stuff: Third-party javascript libraries go here -->
-      <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous" defer></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous" defer></script>
+      <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+              integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+              crossorigin="anonymous"
+              defer></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+              integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+              crossorigin="anonymous"
+              defer></script>
       <!-- Bootstrap JS -->
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous" defer></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+              integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+              crossorigin="anonymous"
+              defer></script>
       <!-- place project specific Javascript in this file -->
       <script defer src="{% static 'js/project.js' %}"></script>
     {% endblock javascript %}
@@ -51,41 +60,79 @@
   <body>
     <header class="site-header">
       <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
-        <div class="container">
-          <a class="navbar-brand mr-4" href="{% url 'scheduler-home' %}">MWIT Guidance Department</a>
-          <button class="navbar-toggler"
-                  type="button"
-                  data-toggle="collapse"
-                  data-target="#navbarToggle"
-                  aria-controls="navbarToggle"
-                  aria-expanded="false"
-                  aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarToggle">
-            <!-- Navbar Left Side -->
-            <div class="navbar-nav mr-auto">
-              <a class="nav-item nav-link" href="{% url 'scheduler-home' %}">Home</a>
-            </div>
-            <!-- Navbar Right Side -->
-            <div class="navbar-nav">
-              {% if user.is_authenticated %}
-                {% if user.is_superuser %}
-                  <a class="nav-item nav-link" href="{% url 'admin:index' %}">Admin</a>
-                {% endif %}
-                {% if request.user|has_group:"teacher" %}
-                  <a class="nav-item nav-link" href="{% url 'teachertable' %}">Teacher</a>
-                {% endif %}
-                <a class="nav-item nav-link"
-                   href="{% url 'users:detail' request.user.username %}">Profile</a>
-                <a class="nav-item nav-link" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
-              {% else %}
-                <a class="nav-item nav-link" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
-                <a class="nav-item nav-link" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
-              {% endif %}
-            </div>
-          </div>
+        <a class="navbar-brand mr-4" href="{% url 'scheduler-home' %}">MWIT Guidance Department</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarToggle"
+          aria-controls="navbarToggle"
+          aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        {% block navbar %}
+        <div class="collapse navbar-collapse" id="navbarToggle">
+          <!-- Navbar Left Side -->
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'scheduler-home' %}">Home</a>
+            </li>
+          </ul>
+          <!-- Navbar Right Side -->
+          <ul class="navbar-nav">
+            {% if user.is_authenticated %} {% if user.is_superuser %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
+            </li>
+            {% endif %} {% if request.user|has_group:"teacher" %}
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                role="button"
+                data-toggle="dropdown"
+                aria-haspopup="true"
+                aria-expanded="false"
+                >Teacher</a>
+              <ul
+                class="dropdown-menu dropdown-menu-dark bg-steel"
+                aria-labelledby="navbarDropdown">
+                <li class="nav-item dropdown-item">
+                  <a class="nav-link" href="{% url 'teacher-scheduler-book' %}">Self-booking</a>
+                </li>
+                <li class="nav-item dropdown-item">
+                  <a class="nav-link" href="{% url 'session-list' %}">Sessions</a>
+                </li>
+              </ul>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'session-list' %}">Sessions</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="{% url 'users:detail' request.user.username %}"
+                >Profile</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'account_logout' %}"
+                >{% translate "Sign Out" %}</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'account_login' %}"
+                >{% translate "Sign In" %}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'account_signup' %}"
+                >{% translate "Sign Up" %}</a>
+            </li>
+            {% endif %}
+          </ul>
         </div>
+        {% endblock navbar %}
       </nav>
     </header>
     {% if messages %}
@@ -111,9 +158,8 @@
                 line-height: 28px;
                 font-size: 14px;
                 color: black;
-                text-align: right;">
-        Modified from
-        <a href="https://tylertaewook.com/projects/tutorscheduler">Kent Tutor Scheduler</a>
+                text-align: right">
+        Modified from <a href="https://tylertaewook.com/projects/tutorscheduler">Kent Tutor Scheduler</a>
       </p>
     </footer>
   </body>

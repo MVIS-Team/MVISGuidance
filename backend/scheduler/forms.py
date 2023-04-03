@@ -4,14 +4,15 @@ from typing import TYPE_CHECKING, cast
 
 from django import forms
 from django.contrib import auth
+
 from scheduler.models import Session, TeacherSession
 
 if TYPE_CHECKING:
     from typing import Type
 
-    from django.contrib.auth.models import User as _User
+    from django.contrib.auth.models import AbstractUser
 
-User: Type[_User] = cast("Type[_User]", auth.get_user_model())
+User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
 class SessionForm(forms.ModelForm):
@@ -25,10 +26,14 @@ class SessionForm(forms.ModelForm):
 
     class Meta:
         model = Session
-        exclude = ("date_posted",)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        fields = (
+            "student",
+            "teacher",
+            "date",
+            "timeblock",
+            "location",
+            "topic",
+        )
 
 
 class TeacherSessionForm(forms.ModelForm):
@@ -39,7 +44,9 @@ class TeacherSessionForm(forms.ModelForm):
 
     class Meta:
         model = TeacherSession
-        exclude = ("date_posted",)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        fields = (
+            "student",
+            "teacher",
+            "date",
+            "timeblock",
+        )

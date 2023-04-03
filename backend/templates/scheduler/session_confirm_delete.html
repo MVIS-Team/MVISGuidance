@@ -11,10 +11,9 @@
       </fieldset>
       <div class="form-group">
         <a class="btn btn-outline-secondary"
-           href="{% url 'users:detail' request.user.username %}">Go Back</a
-          >
-          <button class="btn btn-outline-danger" type="submit">Yes, Cancel</button>
-        </div>
-      </form>
-    </div>
-  {% endblock content %}
+           href="{% url 'users:detail' request.user.username %}">Go Back</a>
+        <button class="btn btn-outline-danger" type="submit">Yes, Cancel</button>
+      </div>
+    </form>
+  </div>
+{% endblock content %}

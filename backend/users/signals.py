@@ -13,13 +13,18 @@ from users.models import Profile
 if TYPE_CHECKING:
     from typing import Type
 
-    from django.contrib.auth.models import User as _User
+    from django.contrib.auth.models import AbstractUser
 
-User: Type[_User] = cast("Type[_User]", auth.get_user_model())
+User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
 @receiver(post_save, sender=User)
-def save_profile(sender: Type[_User], instance: _User, created: bool, **kwargs):
+def save_profile(
+    sender: Type[AbstractUser],
+    instance: AbstractUser,
+    created: bool,
+    **kwargs,
+):  # pylint: disable=W0613
     if created:
         Profile.objects.get_or_create(user=instance)
     profile: Profile = instance.profile  # type: ignore
@@ -27,7 +32,12 @@ def save_profile(sender: Type[_User], instance: _User, created: bool, **kwargs):
 
 
 @receiver(post_save, sender=User)
-def set_permission(sender: Type[_User], instance: _User, created: bool, **kwargs):
+def set_permission(
+    sender: Type[AbstractUser],
+    instance: AbstractUser,
+    created: bool,
+    **kwargs,
+):  # pylint: disable=W0613
     if created:
         assign_perm("scheduler.add_session", instance)
         teacher_group, created = Group.objects.get_or_create(name="teacher")
@@ -35,6 +45,11 @@ def set_permission(sender: Type[_User], instance: _User, created: bool, **kwargs
 
 
 @receiver(post_delete, sender=User)
-def delete_profile(sender: Type[_User], instance: _User, **kwargs):
-    profile: Profile = instance.profile  # type: ignore
-    profile.delete()
+def delete_profile(
+    sender: Type[AbstractUser],
+    instance: AbstractUser,
+    **kwargs,
+):  # pylint: disable=W0613
+    if hasattr(instance, "profile"):
+        profile: Profile = instance.profile
+        profile.delete()

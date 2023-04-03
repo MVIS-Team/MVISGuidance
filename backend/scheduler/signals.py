@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from django.core.mail import EmailMessage
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from guardian.shortcuts import assign_perm
@@ -12,27 +11,14 @@ from scheduler.models import Session
 if TYPE_CHECKING:
     from typing import Type
 
-# @receiver(post_save, sender=Session)
-def session_notify(sender: Type[Session], instance: Session, created: bool, **kwargs):
-    if created:
-        email = EmailMessage(
-            subject="New Session",
-            body=(
-                f"New session at {instance.date} {instance.time} "
-                f"between {instance.teacher.profile.name} "
-                f"and {instance.student.profile.name}.\n"
-                "\n"
-                "(Email notification function is still under development)"
-            ),
-            to=[instance.student.email, instance.teacher.email],
-        )
-        email.send()
-
 
 @receiver(post_save, sender=Session)
 def session_permission(
-    sender: Type[Session], instance: Session, created: bool, **kwargs
-):
+    sender: Type[Session],
+    instance: Session,
+    created: bool,
+    **kwargs,
+):  # pylint: disable=W0613
     if created:
         assign_perm("scheduler.change_session", instance.student, instance)
         assign_perm("scheduler.delete_session", instance.student, instance)

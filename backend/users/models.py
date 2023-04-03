@@ -1,55 +1,38 @@
 from __future__ import annotations
-
 import os
+
 from typing import TYPE_CHECKING, cast
+from urllib.request import urlretrieve
 
 from django.conf import settings
 from django.contrib import auth
 from django.db import models
+from django.core.files import File
 from django.urls import reverse
-from django.utils.deconstruct import deconstructible
-from django.utils.translation import gettext_lazy as _
+from PIL import Image
 
 if TYPE_CHECKING:
-    from typing import Callable, Type
+    from typing import Type
 
-    from django.contrib.auth.models import User as _User
+    from django.contrib.auth.models import AbstractUser
 
-    from users.models import Profile as _Profile
-
-# Create your models here.
-User: Type[_User] = cast("Type[_User]", auth.get_user_model())
-
-
-@deconstructible
-class ProfileUploadPath:
-    def __call__(self, instance: _Profile, filename: str) -> str:
-        return f"profile/{instance.user.pk}-{filename}"
-
-
-profile_upload_path: Callable[[models.Model, str], str] = ProfileUploadPath()
+User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
 class Profile(models.Model):
-    """Default profile for Tutor Scheduler."""
-
-    #: First and last name do not cover name patterns around the globe
-    user: models.OneToOneField = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="profile"
-    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     avatar = models.ImageField(
-        upload_to=profile_upload_path,
+        upload_to="profile",
         blank=True,
     )
 
     def get_absolute_url(self):
-        """Get url for user's detail view.
-
-        Returns:
-            str: URL for user detail.
-
-        """
-        return reverse("users:redirect", kwargs={"username": self.user.username})
+        return reverse(
+            "users:redirect",
+            kwargs={
+                "username": self.user.username,
+            },
+        )
 
     def __str__(self):
         return self.name
@@ -64,6 +47,25 @@ class Profile(models.Model):
 
     @property
     def avatar_url(self):
-        if self.user.is_superuser:
-            return settings.ADMIN_PROFILE
-        return self.avatar.url if self.avatar else settings.DEFAULT_PROFILE
+        return self.avatar.url  # pylint: disable=E1101
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.avatar and settings.DEFAULT_PROFILE:
+            result = urlretrieve(settings.DEFAULT_PROFILE)
+            self.avatar.save(  # pylint: disable=E1101
+                "default-avatar.png", File(open(result[0], "rb"))
+            )
+        img_path = self.avatar.path  # pylint: disable=E1101
+        if self.user.is_superuser and settings.ADMIN_PROFILE:
+            os.remove(img_path)
+            result = urlretrieve(settings.ADMIN_PROFILE)
+            img_path = result[0]
+        img = Image.open(img_path)
+        if img.height > 250 or img.width > 250:
+            img.thumbnail((250, 250))
+        self.avatar.name = f"profile/{self.pk}-avatar.png"
+        avatar_path = self.avatar.path  # pylint: disable=E1101
+        img.save(avatar_path, bitmap_format="png")
+        if not img_path == avatar_path:
+            os.remove(img_path)
