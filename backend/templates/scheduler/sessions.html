@@ -29,16 +29,16 @@
       {% endif %}
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle"
-            role="button"
-            data-toggle="dropdown"
-            aria-haspopup="true"
-            aria-expanded="false">Student</a>
+           role="button"
+           data-toggle="dropdown"
+           aria-haspopup="true"
+           aria-expanded="false">Student</a>
         <ul class="dropdown-menu">
           <li class="nav-item">
             <a class="nav-link"
-                data-toggle="tab"
-                href="#student-upcoming"
-                role="tab">Upcoming Sessions</a>
+               data-toggle="tab"
+               href="#student-upcoming"
+               role="tab">Upcoming Sessions</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" data-toggle="tab" href="#student-past" role="tab">Past Sessions</a>
@@ -47,20 +47,22 @@
       </li>
     </ul>
     <div class="tab-content">
-      <div class="tab-pane" id="teacher-upcoming" role="tabpanel">
-        {% for session in teacher_sessions %}
-          {% if session.is_upcoming %}
-            {% session_detail session "teacher" %}
-          {% endif %}
-        {% endfor %}
-      </div>
-      <div class="tab-pane" id="teacher-past" role="tabpanel">
-        {% for session in teacher_sessions %}
-          {% if session.is_upcoming is False %}
-            {% session_detail session "teacher" %}
-          {% endif %}
-        {% endfor %}
-      </div>
+      {% if user|has_group:"teacher" %}
+        <div class="tab-pane" id="teacher-upcoming" role="tabpanel">
+          {% for session in teacher_sessions %}
+            {% if session.is_upcoming %}
+              {% session_detail session "teacher" %}
+            {% endif %}
+          {% endfor %}
+        </div>
+        <div class="tab-pane" id="teacher-past" role="tabpanel">
+          {% for session in teacher_sessions %}
+            {% if session.is_upcoming is False %}
+              {% session_detail session "teacher" %}
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
       <div class="tab-pane" id="student-upcoming" role="tabpanel">
         {% for session in student_sessions %}
           {% if session.is_upcoming %}
