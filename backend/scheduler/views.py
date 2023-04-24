@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, DeleteView, UpdateView
 from guardian.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from guardian.shortcuts import get_objects_for_user
+
 from scheduler.forms import SessionForm, TeacherSessionForm
 from scheduler.models import Session
 
@@ -27,15 +28,18 @@ if TYPE_CHECKING:
 User: Type[AbstractUser] = cast("Type[AbstractUser]", auth.get_user_model())
 
 
-def generate_daylist(student: AbstractUser, teacher: AbstractUser):
+def generate_daylist(student: AbstractUser, teacher: AbstractUser, week: int = 0):
     if not teacher:
         return []
+    is_self = student.pk == teacher.pk
     daylist = []
-    earliest_book_time = datetime.datetime.now() + datetime.timedelta(hours=12)
-    startday = datetime.date.today()
-    if startday.weekday() > 4:
-        startday += datetime.timedelta(days=7 - startday.weekday())
-    for i in range(5 - startday.weekday()):
+    now = datetime.datetime.now()
+    earliest_book_time = now + datetime.timedelta(hours=12)
+    latest_book_time = (
+        datetime.datetime.max if is_self else now + datetime.timedelta(weeks=1)
+    )
+    startday = now.date() + datetime.timedelta(weeks=week, days=-now.weekday())
+    for i in range(5):
         day: dict[str, Any] = {}
         curr_day = startday + datetime.timedelta(days=i)
         weekday = curr_day.strftime("%A").upper()
@@ -44,6 +48,7 @@ def generate_daylist(student: AbstractUser, teacher: AbstractUser):
         day["onduty"] = teacher
         day["dept"] = ""
         day["booked"] = {}
+        day["booked_self"] = {}
         for key, time in Session.TIMEBLOCK_CHOICES:
             start_time = datetime.datetime.strptime(
                 curr_day.strftime("%d/%m/%Y") + " " + time.split("-", maxsplit=1)[0],
@@ -51,13 +56,22 @@ def generate_daylist(student: AbstractUser, teacher: AbstractUser):
             )
             day["booked"][key] = (
                 time,
-                start_time < earliest_book_time
-                or Session.objects.filter(
-                    Q(date=str(curr_day))
-                    & Q(timeblock=key)
-                    & (Q(teacher=teacher) | Q(student=student))
-                ).exists(),
+                not (earliest_book_time <= start_time <= latest_book_time)
+                or (
+                    not is_self
+                    and Session.objects.filter(
+                        Q(date=str(curr_day))
+                        & Q(timeblock=key)
+                        & (Q(teacher=teacher) | Q(student=student))
+                    ).exists()
+                ),
             )
+        if is_self:
+            for key, text, time_keys in Session.TEACHER_TIMEBLOCK:
+                day["booked_self"][key] = (
+                    text,
+                    any(day["booked"][time_key][1] for time_key in time_keys),
+                )
 
         daylist.append(day)
     return daylist
@@ -212,7 +226,7 @@ class SessionCancelView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView)
         return reverse("users:detail", args=[user.username])
 
 
-def book(request, teacher_pk):
+def book(request, teacher_pk, week=0):
     if not request.user.is_authenticated:
         return redirect("/accounts/login/")
     student = request.user
@@ -222,8 +236,10 @@ def book(request, teacher_pk):
     if not teacher.groups.filter(name="teacher"):
         raise ValidationError(_("Teacher is not actually a teacher."), code="invalid")
     context = {
-        "days": generate_daylist(student, teacher),
+        "days": generate_daylist(student, teacher, week),
         "teacher": teacher,
+        "prev_week": week - 1,
+        "next_week": week + 1,
     }
     return render(request, "scheduler/booking.html", context)
 
@@ -258,28 +274,6 @@ def home(request):
 
 
 class Teacher:
-    @classmethod
-    def schedule(cls, request):
-        student = request.user
-        teacher = User.objects.get(pk=request.user.id)
-        curr_day = datetime.date.today()
-        weekday = curr_day.strftime("%A").upper()
-        day_list = [
-            {
-                "date": curr_day,
-                "day": weekday,
-                "onduty": teacher,
-            }
-        ]
-        for i in generate_daylist(student, teacher):
-            new_dict = {key: i[key] for key in ["date", "day", "onduty"]}
-            day_list.append(new_dict)
-        context = {
-            "days": day_list,
-            "teacher": teacher,
-        }
-        return render(request, "scheduler/teacher/booking.html", context)
-
     @classmethod
     def export(cls, request):
         user = request.user
