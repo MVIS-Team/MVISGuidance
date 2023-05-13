@@ -2,33 +2,21 @@
 
 ## Getting Started
 
-1. Fork and clone repository.
+1. Fork and clone repository then setup with [development container](https://containers.dev).
 
-2. Setup and activate virtual environment with [`virtualenv`](https://virtualenv.pypa.io/en/latest/).
-
-   ```bash
-   python -m virtualenv venv
-   source venv/bin/activate
-   pip install -r backend/requirements/dev.txt
-   ```
-
-   In windows, change `source venv/bin/activate` to `venv/Scripts/activate`
-
-3. Migrate database.
+2. Migrate database.
 
    ```bash
    python manage.py migrate
    ```
 
-4. Create admin user.
+3. Create admin user.
 
    ```bash
    python manage.py createsuperuser
    ```
 
-5. Setup and run [MailHog](https://github.com/mailhog/MailHog).
-
-6. Run development server at <http://localhost:8000/>.
+4. Run development server at <http://localhost:8000/> and email server at <http://localhost:8025/>.
 
    ```bash
    python manage.py runserver
