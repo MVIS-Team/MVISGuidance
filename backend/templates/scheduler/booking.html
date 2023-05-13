@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+  <h2 class="text-center">
+    <a class="article-title" href="#">{{ teacher.profile.name }}</a>
+  </h2>
   <ul class="pagination justify-content-center">
     {% if prev_week >= 0 %}
       <li class="page-item">
@@ -16,40 +19,112 @@
          href="{% url 'scheduler-book' teacher.pk next_week %}">Next</a>
     </li>
   </ul>
-  <h2>
-    <a class="article-title" href="#">{{ teacher.profile.name }}</a>
-  </h2>
-  {% for day in days %}
+  {% for day in week %}
     <article class="media content-section">
       <div class="media-body">
         <div class="article-metadata">
           <a class="mr-2" href="#">{{ day.date }}</a>
-          <small class="text-muted">{{ day.day }}</small>
+          <small class="text-muted">{{ day.weekday }}</small>
         </div>
-        <p class="article-content">{{ day.dept }}</p>
-        <div class="btn-group-vertical d-flex justify-content-center">
+        <form class="btn-group-vertical d-flex justify-content-center">
           <div class="btn-group d-flex justify-content-center"
                role="group"
                aria-label="Quick Booking">
-            {% for key, value in day.booked_self.items %}
-              {% if not value.1 %}
-                <a class="btn btn-success btn-lg"
-                   href="{% url 'teacher-session-create' teacher.pk day.date key %}">{{ value.0 }}</a>
+            {% for key, slot in day.timeblocks_teacher.items %}
+              {% if slot.is_avaliable %}
+                <button type="submit"
+                        class="btn btn-success btn-lg"
+                        formaction="{% url 'teacher-session-create' teacher.pk day.date key %}">
+                  {{ slot.label }}
+                </button>
               {% else %}
-                <a class="btn btn-secondary btn-lg" disabled>{{ value.0 }}</a>
+                <button type="button" class="btn btn-secondary btn-lg">{{ slot.label }}</button>
               {% endif %}
             {% endfor %}
           </div>
-          {% for key, value in day.booked.items %}
-            {% if not value.1 %}
-              <a class="btn btn-success btn-lg btn-block"
-                 href="{% url 'session-create-spec' teacher.pk day.date key %}">{{ value.0 }}</a>
+          {% for key, slot in day.timeblocks.items %}
+            {% if slot.is_avaliable %}
+              <button type="submit"
+                      class="btn btn-success btn-lg btn-block"
+                      formaction="{% url 'session-create-spec' teacher.pk day.date key %}">
+                {{ slot.label }}
+              </button>
+            {% elif slot.session %}
+              <button type="button"
+                      class="btn btn-info btn-lg btn-block"
+                      data-toggle="modal"
+                      data-target="#session_detail_modal"
+                      data-datetime="{{ slot.session.date|date:"F d, l" }} {{ slot.session.get_timeblock_display }}"
+                      data-teacher-name="{{ slot.session.teacher.profile.name }}"
+                      data-student-name="{{ slot.session.student.profile.name }}"
+                      data-edit-url="{% url 'session-edit' slot.session.pk %}"
+                      data-cancel-url="{% url 'session-cancel' slot.session.pk %}">
+                {{ slot.label }}
+              </button>
             {% else %}
-              <a class="btn btn-secondary btn-lg btn-block" disabled>BOOKED</a>
+              <button type="button" class="btn btn-secondary btn-lg btn-block">{{ slot.label }}</button>
             {% endif %}
           {% endfor %}
-        </div>
+        </form>
       </div>
     </article>
   {% endfor %}
 {% endblock content %}
+{% block modal %}
+  <div class="modal faded"
+       id="session_detail_modal"
+       tabindex="-1"
+       role="dialog"
+       aria-labelledby="session detail modal"
+       aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="session_datetime">Session Details</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div>
+            Teacher: <slot id="teacher"></slot>
+          </div>
+          <div>
+            Student: <slot id="student"></slot>
+          </div>
+          <div>
+            Time: <slot id="datetime"></slot>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <form>
+            <button type="submit" id="edit" class="btn btn-outline-primary">Edit</button>
+            <button type="submit" id="cancel" class="btn btn-outline-danger">Cancel</button>
+            <button type="button"
+                    id="close"
+                    class="btn btn-outline-secondary"
+                    data-dismiss="modal">Close</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock modal %}
+{% block inline_javascript %}
+  <script>
+    $('#session_detail_modal').on('show.bs.modal', function(event) {
+        let button = $(event.relatedTarget)
+        let datetime = button.data('datetime')
+        let teacher_name = button.data('teacher-name')
+        let student_name = button.data('student-name')
+        let edit_url = button.data('edit-url')
+        let cancel_url = button.data('cancel-url')
+        let modal = $(this)
+        modal.find('#datetime').text(datetime)
+        modal.find('#teacher').text(teacher_name)
+        modal.find('#student').text(student_name)
+        modal.find('#edit').attr("formaction", edit_url)
+        modal.find('#cancel').attr("formaction", cancel_url)
+    })
+  </script>
+{% endblock inline_javascript %}

@@ -14,11 +14,13 @@
     <div class="media-body">
       <h2 class="account-heading">{{ profile.name }}</h2>
       <p class="text-secondary">
-        {% if profile.user.is_superuser %}Admin{% endif %}
+        {{ profile.user.username }}
+        {% if profile.user.is_superuser %}<span class="badge badge-info">Admin</span>{% endif %}
         {% if profile.user|has_group:"teacher" %}
-          Teacher
-        {% else %}
-          Student
+          <span class="badge badge-info">Teacher</span>
+        {% endif %}
+        {% if not profile.user|has_group:"teacher" %}
+          <span class="badge badge-info">Student</span>
         {% endif %}
       </p>
       <p class="text-secondary">{{ profile.user.email }}</p>
@@ -27,8 +29,6 @@
         <a class="btn btn-primary"
            href="{% url 'account_email' %}"
            role="button">Edit Email</a>
-      {% else %}
-        <p>It's not you, It's them</p>
       {% endif %}
     </div>
   </div>

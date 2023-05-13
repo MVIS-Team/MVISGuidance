@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from guardian.shortcuts import assign_perm
-
 from scheduler.models import Session
 
 if TYPE_CHECKING:

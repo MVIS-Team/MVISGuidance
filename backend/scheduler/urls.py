@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from django.urls import path, register_converter
-
 from scheduler import views
 
 

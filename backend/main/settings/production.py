@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 
 from decouple import config
-
 from main.settings.base import *  # noqa # pylint: disable=W0401,W0614
 
 # GENERAL

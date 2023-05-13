@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from decouple import config
-
 from main.settings.base import *  # noqa # pylint: disable=W0401,W0614
 
 # Quick-start development settings - unsuitable for production

@@ -1,13 +1,13 @@
 from __future__ import annotations
-import os
 
+import os
 from typing import TYPE_CHECKING, cast
 from urllib.request import urlretrieve
 
 from django.conf import settings
 from django.contrib import auth
-from django.db import models
 from django.core.files import File
+from django.db import models
 from django.urls import reverse
 from PIL import Image
 
