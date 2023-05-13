@@ -38,6 +38,11 @@ class Session(models.Model):
         ("O", "15:30-16:00"),
         ("P", "16:00-16:30"),
     )
+    TEACHER_TIMEBLOCK = (
+        ("allday", "All Day", [chr(i) for i in range(65, 81)]),
+        ("allam", "All AM", [chr(i) for i in range(65, 72)]),
+        ("allpm", "All PM", [chr(i) for i in range(73, 81)]),
+    )
     LOCATION_CHOICES = (
         ("onsite", "Onsite"),
         ("online", "Online"),

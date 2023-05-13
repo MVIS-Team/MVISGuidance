@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import datetime
 
 from django.urls import path, register_converter
-
 from scheduler import views
 
 
@@ -31,6 +30,11 @@ urlpatterns = [
         view=views.book,
     ),
     path(
+        "book/<int:teacher_pk>/<int:week>",
+        name="scheduler-book",
+        view=views.book,
+    ),
+    path(
         "sessions/new/<int:teacher_pk>/<yyyy:date>/<str:timeblock>",
         name="session-create-spec",
         view=views.SessionCreateView.as_view(),
@@ -49,11 +53,6 @@ urlpatterns = [
         "sessions/",
         view=views.sessions_list,
         name="session-list",
-    ),
-    path(
-        "teacher/book/",
-        view=views.Teacher.schedule,
-        name="teacher-scheduler-book",
     ),
     path(
         "teacher/export/",

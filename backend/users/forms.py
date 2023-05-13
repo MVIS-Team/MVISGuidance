@@ -7,7 +7,6 @@ from django import forms
 from django.contrib import auth
 from django.contrib.auth import forms as auth_forms
 from django.utils.translation import gettext_lazy as _
-
 from users.models import Profile
 
 if TYPE_CHECKING:

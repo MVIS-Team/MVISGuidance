@@ -6,7 +6,6 @@ from django.contrib import admin, auth
 from django.contrib.auth.admin import UserAdmin as _UserAdmin
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
-
 from users.forms import ProfileChangeForm, UserChangeForm, UserCreationForm
 from users.models import Profile
 

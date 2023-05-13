@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, cast
 
 from django import forms
 from django.contrib import auth
-
 from scheduler.models import Session, TeacherSession
 
 if TYPE_CHECKING:
